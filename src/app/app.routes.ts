@@ -1,8 +1,14 @@
 import { Routes } from '@angular/router';
 import { Login } from './auth/login/login';
+import { PrescriptionsList } from './prescriptions/prescriptions-list';
+import { PrescriptionForm } from './prescriptions/prescription-form';
 
 export const routes: Routes = [
-    {path:'', redirectTo:'login' ,pathMatch: 'full'},
-    {path:'login', component :Login},
-    {path: '**', redirectTo: 'login'}
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login', component: Login },
+
+  { path: 'prescriptions', component: PrescriptionsList },
+  { path: 'prescriptions/new', component: PrescriptionForm },
+
+  { path: '**', redirectTo: 'login' },
 ];

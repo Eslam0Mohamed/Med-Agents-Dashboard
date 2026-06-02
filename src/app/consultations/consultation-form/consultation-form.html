@@ -1,1 +1,59 @@
-<p>consultation-form works!</p>
+<div class="form-container">
+  <h2>{{ isEditMode ? 'Edit' : 'New' }} Consultation</h2>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+    <mat-form-field appearance="outline">
+      <mat-label>Patient ID</mat-label>
+      <input matInput formControlName="patientId"/>
+      <mat-error *ngIf="form.get('patientId')?.hasError('required')">
+        Patient ID is required
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Doctor's Notes</mat-label>
+      <textarea matInput formControlName="rawInput" rows="4"></textarea>
+      <mat-error *ngIf="form.get('rawInput')?.hasError('required')">
+        Notes are required
+      </mat-error>
+      <mat-error *ngIf="form.get('rawInput')?.hasError('minlength')">
+        Minimum 10 characters
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Symptoms (comma separated)</mat-label>
+      <input matInput formControlName="symptoms"
+             placeholder="headache, fever, cough"/>
+      <mat-error *ngIf="form.get('symptoms')?.hasError('required')">
+        Symptoms are required
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Diagnosis (optional)</mat-label>
+      <input matInput formControlName="diagnosis"/>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Language</mat-label>
+      <mat-select formControlName="language">
+        <mat-option value="en">English</mat-option>
+        <mat-option value="ar">Arabic</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div class="actions">
+      <button mat-button type="button" routerLink="/consultations">
+        Cancel
+      </button>
+      <button mat-raised-button color="primary"
+              type="submit" [disabled]="isLoading">
+        <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+        {{ isEditMode ? 'Update' : 'Create' }}
+      </button>
+    </div>
+
+  </form>
+</div>

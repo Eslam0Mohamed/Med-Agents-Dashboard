@@ -5,6 +5,12 @@ export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
     { path: 'login', component: Login },
     {
+        path: 'dashboard',
+        loadChildren: () =>
+            import('./dashboard/dashboard-module')
+                .then(m => m.DashboardModule)
+    },
+    {
         path: 'consultations',
         loadChildren: () =>
             import('./consultations/consultations-module')

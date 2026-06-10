@@ -1,13 +1,13 @@
 export interface Followup {
   _id: string;
-  consultationId: {
+  consultationId?: {
     _id: string;
-    doctorId: {
+    doctorId?: {
       _id: string;
       name: string;
     };
   };
-  patientId: {
+  patientId?: {
     _id: string;
     name: string;
   };

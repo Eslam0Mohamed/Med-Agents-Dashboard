@@ -26,18 +26,26 @@ export class Followups implements OnInit {
   pageSize = 10;
   totalItems = 0;
 
+  // Stats
+  get totalFollowups(): number {
+    return this.allFollowups.length;
+  }
+  get totalDone(): number {
+    return this.allFollowups.filter((f) => f.status === 'done').length;
+  }
+  get totalPending(): number {
+    return this.allFollowups.filter((f) => f.status === 'pending').length;
+  }
+
   get totalPages(): number {
     return Math.ceil(this.totalItems / this.pageSize);
   }
-
   get pages(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i);
   }
-
   get startItem(): number {
     return this.pageIndex * this.pageSize + 1;
   }
-
   get endItem(): number {
     return Math.min((this.pageIndex + 1) * this.pageSize, this.totalItems);
   }
@@ -55,7 +63,6 @@ export class Followups implements OnInit {
     this.followupService.getAllFollowups().subscribe({
       next: (res) => {
         this.allFollowups = res.data || [];
-        console.log('sample:', JSON.stringify(this.allFollowups[0]?.patientId));
         this.applySearch();
         this.isLoading.set(false);
       },
@@ -71,8 +78,7 @@ export class Followups implements OnInit {
     const filtered = term
       ? this.allFollowups.filter((f) => {
           if (!f.patientId) return false;
-          const patientId =
-            typeof f.patientId === 'object' ? (f.patientId as any)?._id : f.patientId;
+          const patientId = (f.patientId as any)?._id;
           return patientId?.toLowerCase().includes(term);
         })
       : this.allFollowups;
@@ -138,7 +144,6 @@ export class Followups implements OnInit {
   deleteFollowup(id: string): void {
     if (!confirm('Are you sure you want to delete this follow-up?')) return;
 
-    // احذف من الـ UI فوراً
     const deleted = this.allFollowups.find((f) => f._id === id);
     this.pagedFollowups = this.pagedFollowups.filter((f) => f._id !== id);
     this.allFollowups = this.allFollowups.filter((f) => f._id !== id);

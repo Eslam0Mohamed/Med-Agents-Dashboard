@@ -28,7 +28,6 @@ import { Consultations } from '../../models/consultations';
 })
 export class ConsultationListComponent implements OnInit {
 
-  // ✅ signals بدل properties عادية
   consultations = signal<Consultations[]>([]);
   filteredConsultations = signal<Consultations[]>([]);
   searchQuery = signal('');
@@ -86,12 +85,11 @@ export class ConsultationListComponent implements OnInit {
     return colors[level] || 'primary';
   }
 
-  // ✅ delete بيعمل reload تلقائي
   deleteConsultation(id: string): void {
     if (confirm('Are you sure you want to delete this consultation?')) {
       this.consultationService.delete(id).subscribe({
         next: () => {
-          // بيشيل العنصر من الـ signal مباشرة من غير reload
+
           this.consultations.update(list => list.filter(c => c._id !== id));
           this.totalItems.update(n => n - 1);
           this.applyPagination();
@@ -101,7 +99,6 @@ export class ConsultationListComponent implements OnInit {
     }
   }
 
-  // ✅ بيعرض اسم المريض مش الـ object
   getPatientName(patient: any): string {
     if (typeof patient === 'object' && patient !== null) {
       return patient.name || patient._id || 'Unknown';

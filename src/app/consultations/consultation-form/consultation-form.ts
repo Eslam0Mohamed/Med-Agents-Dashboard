@@ -9,7 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ConsultationService } from '../../services/consultation';
 import { computed } from '@angular/core';
 
@@ -34,7 +34,6 @@ export class ConsultationFormComponent implements OnInit {
   isLoading = signal(false);
   patients = signal<any[]>([]);
 
-  // القايمة المفلترة بناءً على اللي بتكتبيه
   filteredPatients = computed(() => {
     const search = (this.form?.get('patientName')?.value ?? '').toLowerCase();
     if (!search) return this.patients();
@@ -56,16 +55,16 @@ export class ConsultationFormComponent implements OnInit {
     this.loadPatients();
 
     this.consultationId = this.route.snapshot.params['id'] ?? null;
+
     if (this.consultationId) {
       this.isEditMode = true;
-      this.loadConsultation();
     }
   }
 
   initForm(): void {
     this.form = this.fb.group({
       patientId:   ['', Validators.required],
-      patientName: ['', Validators.required],   // للعرض فقط في الـ input
+      patientName: ['', Validators.required],
       rawInput:    ['', [Validators.required, Validators.minLength(10)]],
       symptoms:    ['', Validators.required],
       diagnosis:   [''],
@@ -73,17 +72,41 @@ export class ConsultationFormComponent implements OnInit {
     });
   }
 
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
+  }
+
+
+
   loadPatients(): void {
-    this.http.get<any>('http://localhost:5000/api/patient').subscribe({
-      next: (res) => this.patients.set(res.data || res),
+    this.http.get<any>('http://localhost:5000/api/patient', {
+      headers: this.getAuthHeaders()
+    }).subscribe({
+      next: (res) => {
+        this.patients.set(res.data || res);
+
+
+        if (this.consultationId) {
+          this.loadConsultation();
+        }
+      },
       error: (err) => console.error('Failed to load patients', err)
     });
   }
 
+
   loadConsultation(): void {
     this.consultationService.getById(this.consultationId!).subscribe({
       next: (res) => {
-        const patient = this.patients().find(p => p._id === res.data.patientId);
+
+        const patient = this.patients().find(
+          p => p._id === res.data.patientId
+        );
+
         this.form.patchValue({
           ...res.data,
           patientName: patient?.name ?? '',
@@ -96,24 +119,25 @@ export class ConsultationFormComponent implements OnInit {
     });
   }
 
-  // لما المستخدم يختار من القايمة
+
   onPatientSelected(patient: any): void {
     this.form.patchValue({
-      patientId:   patient._id,
+      patientId: patient._id,
       patientName: patient.name
     });
   }
 
-  // لو مسحت الاسم نظّفي الـ patientId
   onPatientInputChange(): void {
     this.form.patchValue({ patientId: '' });
   }
 
+
   onSubmit(): void {
     if (this.form.invalid) return;
+
     this.isLoading.set(true);
 
-    const { patientName, ...rest } = this.form.value;   // شيلي patientName قبل الإرسال
+    const { patientName, ...rest } = this.form.value;
 
     const formValue = {
       ...rest,
@@ -128,11 +152,11 @@ export class ConsultationFormComponent implements OnInit {
       : this.consultationService.create(formValue);
 
     request$.subscribe({
-      next: () => {
-        this.isLoading.set(false);
-        this.router.navigate(['/consultations']);
-      },
-      error: () => this.isLoading.set(false)
+     next: () => {
+  this.isLoading.set(false);
+  // ✅ كده
+  this.router.navigateByUrl('/consultations');
+},
     });
   }
 }

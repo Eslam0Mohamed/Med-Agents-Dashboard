@@ -63,7 +63,7 @@ mat-chip {
   margin-bottom: 16px;
 }
 
-/* الجدول بيعمل scroll على الموبايل */
+
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
@@ -81,7 +81,7 @@ tr:hover {
   background-color: #f5f5f5;
 }
 
-/* Urgency Colors */
+
 .urgency-badge {
   padding: 4px 12px;
   border-radius: 20px;

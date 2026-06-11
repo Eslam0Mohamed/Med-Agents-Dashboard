@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -8,41 +8,42 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
+import { HttpClient } from '@angular/common/http';
 import { ConsultationService } from '../../services/consultation';
 
 @Component({
   selector: 'app-consultation-form',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatSelectModule,
-    MatProgressSpinnerModule,
-    MatIconModule
+    CommonModule, ReactiveFormsModule, RouterModule,
+    MatFormFieldModule, MatInputModule, MatButtonModule,
+    MatSelectModule, MatProgressSpinnerModule, MatIconModule
   ],
   templateUrl: './consultation-form.html',
-  styleUrl:'./consultation-form.css'
+  styleUrl: './consultation-form.css'
 })
 export class ConsultationFormComponent implements OnInit {
 
   form!: FormGroup;
   isEditMode = false;
   consultationId = '';
-  isLoading = false;
+
+  // ✅ signals
+  isLoading = signal(false);
+  patients = signal<any[]>([]);
 
   constructor(
     private fb: FormBuilder,
     private consultationService: ConsultationService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
     this.initForm();
+    this.loadPatients();
+
     this.consultationId = this.route.snapshot.params['id'];
     if (this.consultationId) {
       this.isEditMode = true;
@@ -60,6 +61,14 @@ export class ConsultationFormComponent implements OnInit {
     });
   }
 
+  // ✅ بيجيب المرضى من الـ Backend
+  loadPatients(): void {
+    this.http.get<any>('http://localhost:5000/api/patient').subscribe({
+      next: (res) => this.patients.set(res.data || res),
+      error: (err) => console.error('Failed to load patients', err)
+    });
+  }
+
   loadConsultation(): void {
     this.consultationService.getById(this.consultationId).subscribe({
       next: (res) => {
@@ -73,7 +82,7 @@ export class ConsultationFormComponent implements OnInit {
 
   onSubmit(): void {
     if (this.form.invalid) return;
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     const formValue = {
       ...this.form.value,
@@ -85,8 +94,12 @@ export class ConsultationFormComponent implements OnInit {
       : this.consultationService.create(formValue);
 
     request$.subscribe({
-      next: () => this.router.navigate(['/consultations']),
-      error: () => { this.isLoading = false; }
+      next: () => {
+        this.isLoading.set(false);
+        // ✅ navigation صح للـ consultations مش login
+        this.router.navigate(['/consultations']);
+      },
+      error: () => this.isLoading.set(false)
     });
   }
 }

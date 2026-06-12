@@ -1,4 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
+import Swal from 'sweetalert2';
+
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -10,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+
 import { ConsultationService } from '../../services/consultation';
 import { Consultations } from '../../models/consultations';
 
@@ -46,6 +49,9 @@ export class ConsultationListComponent implements OnInit {
     this.loadConsultations();
   }
 
+  // =========================
+  // LOAD DATA
+  // =========================
   loadConsultations(): void {
     this.consultationService.getAll(this.searchQuery()).subscribe({
       next: (res) => {
@@ -53,7 +59,9 @@ export class ConsultationListComponent implements OnInit {
         this.totalItems.set(res.count);
         this.applyPagination();
       },
-      error: (err) => console.error(err)
+      error: () => {
+        Swal.fire('Error', 'Failed to load consultations', 'error');
+      }
     });
   }
 
@@ -76,6 +84,70 @@ export class ConsultationListComponent implements OnInit {
     this.loadConsultations();
   }
 
+  // =========================
+  // DELETE (SWEET ALERT)
+  // =========================
+  deleteConsultation(id: string): void {
+
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'You will not be able to revert this!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+
+      if (result.isConfirmed) {
+
+        Swal.fire({
+          title: 'Deleting...',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        this.consultationService.delete(id).subscribe({
+          next: () => {
+
+            Swal.fire({
+              title: 'Deleted!',
+              text: 'Consultation deleted successfully.',
+              icon: 'success',
+              timer: 2000,
+              showConfirmButton: false
+            });
+
+            // تحديث البيانات بدون reload كامل
+            this.consultations.update(list =>
+              list.filter(c => c._id !== id)
+            );
+
+            this.totalItems.update(n => n - 1);
+            this.applyPagination();
+          },
+
+          error: () => {
+            Swal.fire('Error', 'Delete failed', 'error');
+          }
+        });
+
+      }
+    });
+  }
+
+  // =========================
+  // HELPERS
+  // =========================
+  getPatientName(patient: any): string {
+    if (typeof patient === 'object' && patient !== null) {
+      return patient.name || patient._id || 'Unknown';
+    }
+    return patient || 'Unknown';
+  }
+
   getUrgencyColor(level: string): string {
     const colors: Record<string, string> = {
       low: 'primary',
@@ -83,26 +155,5 @@ export class ConsultationListComponent implements OnInit {
       critical: 'warn'
     };
     return colors[level] || 'primary';
-  }
-
-  deleteConsultation(id: string): void {
-    if (confirm('Are you sure you want to delete this consultation?')) {
-      this.consultationService.delete(id).subscribe({
-        next: () => {
-
-          this.consultations.update(list => list.filter(c => c._id !== id));
-          this.totalItems.update(n => n - 1);
-          this.applyPagination();
-        },
-        error: (err) => console.error(err)
-      });
-    }
-  }
-
-  getPatientName(patient: any): string {
-    if (typeof patient === 'object' && patient !== null) {
-      return patient.name || patient._id || 'Unknown';
-    }
-    return patient || 'Unknown';
   }
 }

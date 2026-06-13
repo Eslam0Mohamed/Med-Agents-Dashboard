@@ -85,7 +85,7 @@ export class ConsultationFormComponent implements OnInit {
       : this.consultationService.create(formValue);
 
     request$.subscribe({
-      next: () => this.router.navigate(['/consultations']),
+      next: () => this.router.navigate(['/consultaions']),
       error: () => { this.isLoading = false; }
     });
   }

@@ -49,15 +49,13 @@ export class ConsultationListComponent implements OnInit {
     this.loadConsultations();
   }
 
-  // =========================
-  // LOAD DATA
-  // =========================
+
   loadConsultations(): void {
-    this.consultationService.getAll(this.searchQuery()).subscribe({
+    this.consultationService.getAll().subscribe({
       next: (res) => {
         this.consultations.set(res.data);
         this.totalItems.set(res.count);
-        this.applyPagination();
+        this.filterLocally();
       },
       error: () => {
         Swal.fire('Error', 'Failed to load consultations', 'error');
@@ -75,20 +73,51 @@ export class ConsultationListComponent implements OnInit {
   onPageChange(event: PageEvent): void {
     this.pageIndex.set(event.pageIndex);
     this.pageSize.set(event.pageSize);
-    this.applyPagination();
+    this.filterLocally();
   }
+
 
   onSearch(value: string): void {
     this.searchQuery.set(value);
     this.pageIndex.set(0);
-    this.loadConsultations();
+    this.filterLocally();
   }
 
-  // =========================
-  // DELETE (SWEET ALERT)
-  // =========================
-  deleteConsultation(id: string): void {
+  filterLocally(): void {
+    const query = this.searchQuery().toLowerCase().trim();
 
+    if (!query) {
+      const start = this.pageIndex() * this.pageSize();
+      this.filteredConsultations.set(
+        this.consultations().slice(start, start + this.pageSize())
+      );
+      this.totalItems.set(this.consultations().length);
+      return;
+    }
+
+    const filtered = this.consultations().filter(c => {
+      const patientName = this.getPatientName(c.patientId).toLowerCase();
+      const symptoms = c.symptoms.join(', ').toLowerCase();
+      const specialist = (c.suggestedSpecialist || '').toLowerCase();
+      const status = (c.status || '').toLowerCase();
+      const urgency = (c.urgencyLevel || '').toLowerCase();
+
+      return patientName.includes(query) ||
+             symptoms.includes(query) ||
+             specialist.includes(query) ||
+             status.includes(query) ||
+             urgency.includes(query);
+    });
+
+    const start = this.pageIndex() * this.pageSize();
+    this.filteredConsultations.set(
+      filtered.slice(start, start + this.pageSize())
+    );
+    this.totalItems.set(filtered.length);
+  }
+
+
+  deleteConsultation(id: string): void {
     Swal.fire({
       title: 'Are you sure?',
       text: 'You will not be able to revert this!',
@@ -98,20 +127,15 @@ export class ConsultationListComponent implements OnInit {
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
-
       if (result.isConfirmed) {
-
         Swal.fire({
           title: 'Deleting...',
           allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          }
+          didOpen: () => Swal.showLoading()
         });
 
         this.consultationService.delete(id).subscribe({
           next: () => {
-
             Swal.fire({
               title: 'Deleted!',
               text: 'Consultation deleted successfully.',
@@ -120,27 +144,21 @@ export class ConsultationListComponent implements OnInit {
               showConfirmButton: false
             });
 
-            // تحديث البيانات بدون reload كامل
             this.consultations.update(list =>
               list.filter(c => c._id !== id)
             );
-
             this.totalItems.update(n => n - 1);
-            this.applyPagination();
+            this.filterLocally();
           },
-
           error: () => {
             Swal.fire('Error', 'Delete failed', 'error');
           }
         });
-
       }
     });
   }
 
-  // =========================
-  // HELPERS
-  // =========================
+
   getPatientName(patient: any): string {
     if (typeof patient === 'object' && patient !== null) {
       return patient.name || patient._id || 'Unknown';

@@ -73,13 +73,22 @@
     </table>
   </div>
 
+
   <!-- Empty State -->
-  @if (filteredConsultations().length === 0) {
-    <div class="empty-state">
-      <mat-icon>medical_services</mat-icon>
-      <p>No consultations found</p>
-    </div>
-  }
+@if (filteredConsultations().length === 0 && searchQuery()) {
+  <div class="empty-state">
+    <mat-icon>search_off</mat-icon>
+    <p>No matching consultations found</p>
+  </div>
+}
+
+
+@if (filteredConsultations().length === 0 && !searchQuery()) {
+  <div class="empty-state">
+    <mat-icon>medical_services</mat-icon>
+    <p>No consultations available</p>
+  </div>
+}
 
   <!-- Pagination -->
   <mat-paginator

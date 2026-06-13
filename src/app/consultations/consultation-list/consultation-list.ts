@@ -52,6 +52,8 @@ export class ConsultationListComponent implements OnInit {
   loadConsultations(): void {
     this.consultationService.getAll(this.searchQuery).subscribe({
       next: (res) => {
+        console.log(res);
+
         this.consultations = res.data;
         this.totalItems = res.count;
         this.applyPagination();

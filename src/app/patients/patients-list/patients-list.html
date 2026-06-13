@@ -4,7 +4,18 @@
     <h2>Patients</h2>
     <button class="btn-add" (click)="goToAdd()">+ Add Patient</button>
   </div>
-
+<div class="search-wrap">
+  <p>Search by Patient ID</p>
+  <div class="search-row">
+    <input
+      type="text"
+      placeholder="Enter patient ID"
+      [ngModel]="searchQuery()"
+      (ngModelChange)="searchQuery.set($event) ;loadPatients()" />
+<button class="btn-search" (click)="loadPatients()">Search</button>
+    <button class="btn-clear" (click)="searchQuery.set(''); onSearch('');loadPatients()">Clear</button>
+  </div>
+</div>
   @if (isLoading()) {
     <div class="loading">Loading...</div>
   }
@@ -27,6 +38,7 @@
           <th>Blood Type</th>
           <th>Allergies</th>
           <th>Chronic Conditions</th>
+          <th>National ID</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -57,6 +69,7 @@
                 <span>—</span>
               }
             </td>
+            <td>{{ patient.nationalID }}</td>
             <td>
               <div class="actions">
                 <button class="btn-edit" (click)="goToEdit(patient._id!)">Edit</button>
@@ -69,4 +82,27 @@
     </table>
   }
 
+@if (totalPages() > 1 && !searchQuery()) {
+  <div class="pagination">
+    <button class="page-btn" (click)="prevPage()" [disabled]="currentPage() === 1">
+      ← Prev
+    </button>
+
+    @for (page of [].constructor(totalPages()); track $index) {
+      <button class="page-btn"
+        [class.active]="currentPage() === $index + 1"
+        (click)="goToPage($index + 1)">
+        {{ $index + 1 }}
+      </button>
+    }
+
+    <button class="page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">
+      Next →
+    </button>
+
+    <span class="page-info">
+      Show {{ currentPage() }} of {{ totalPages() }} — {{ totalPatients() }} patients
+    </span>
+  </div>
+}
 </div>

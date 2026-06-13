@@ -13,6 +13,7 @@ import { Observable } from 'rxjs';
 export interface Patient {
   _id?: string;
   name: string;
+   nationalID: string;
   dateOfBirth: string;
   gender: 'male' | 'female';
   bloodType: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
@@ -28,11 +29,16 @@ export class PatientService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(): Observable<{ success: boolean; data: Patient[] }> {
-    
-    return this.http.get<{ success: boolean; data: Patient[] }>(this.apiUrl);
-  }
 
+getAll(search = '', page = 1, limit = 10): Observable<{
+  success: boolean;
+  data: Patient[];
+  pagination: { total: number; page: number; limit: number; totalPages: number } | null;
+}> {
+  let params = `?page=${page}&limit=${limit}`;
+  if (search) params += `&search=${search}`;
+  return this.http.get<any>(`${this.apiUrl}${params}`);
+}
   getById(id: string): Observable<{ success: boolean; data: Patient }> {
     return this.http.get<{ success: boolean; data: Patient }>(`${this.apiUrl}/${id}`);
   }

@@ -3,7 +3,6 @@
   <!-- Header -->
   <div class="header">
     <h2>Consultations</h2>
-
     <a mat-raised-button color="primary" routerLink="add" class="new-btn">
       <mat-icon>add</mat-icon>
       <span class="btn-text">New Consultation</span>
@@ -22,22 +21,18 @@
 
   <!-- Table -->
   <div class="table-wrapper">
-
     <table mat-table [dataSource]="filteredConsultations()" class="mat-elevation-z2">
 
-      <!-- Patient -->
       <ng-container matColumnDef="patientName">
         <th mat-header-cell *matHeaderCellDef>Patient</th>
         <td mat-cell *matCellDef="let c">{{ getPatientName(c.patientId) }}</td>
       </ng-container>
 
-      <!-- Symptoms -->
       <ng-container matColumnDef="symptoms">
         <th mat-header-cell *matHeaderCellDef>Symptoms</th>
         <td mat-cell *matCellDef="let c">{{ c.symptoms.join(', ') }}</td>
       </ng-container>
 
-      <!-- Urgency -->
       <ng-container matColumnDef="urgencyLevel">
         <th mat-header-cell *matHeaderCellDef>Urgency</th>
         <td mat-cell *matCellDef="let c">
@@ -47,42 +42,38 @@
         </td>
       </ng-container>
 
-      <!-- Specialist -->
       <ng-container matColumnDef="suggestedSpecialist">
         <th mat-header-cell *matHeaderCellDef>Specialist</th>
         <td mat-cell *matCellDef="let c">{{ c.suggestedSpecialist }}</td>
       </ng-container>
 
-      <!-- Status -->
       <ng-container matColumnDef="status">
         <th mat-header-cell *matHeaderCellDef>Status</th>
-        <td mat-cell *matCellDef="let c">{{ c.status }}</td>
+        <td mat-cell *matCellDef="let c">
+          <span class="status-badge" [ngClass]="c.status">
+            {{ c.status }}
+          </span>
+        </td>
       </ng-container>
 
-      <!-- Actions -->
+      <ng-container matColumnDef="followUpDate">
+        <th mat-header-cell *matHeaderCellDef>Follow-up</th>
+        <td mat-cell *matCellDef="let c">
+          {{ c.followUpDate ? (c.followUpDate | date:'mediumDate') : '—' }}
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef>Actions</th>
         <td mat-cell *matCellDef="let c">
-
           <div class="action-buttons">
-
-            <!-- VIEW -->
-            <button mat-icon-button color="accent" (click)="viewConsultation(c)">
-              <mat-icon>visibility</mat-icon>
-            </button>
-
-            <!-- EDIT -->
-            <a mat-icon-button color="primary" [routerLink]="['edit', c._id]">
-              <mat-icon>edit</mat-icon>
+            <a mat-stroked-button color="primary" [routerLink]="['edit', c._id]">
+              Edit
             </a>
-
-            <!-- DELETE -->
-            <button mat-icon-button color="warn" (click)="deleteConsultation(c._id)">
-              <mat-icon>delete</mat-icon>
+            <button mat-stroked-button color="warn" (click)="deleteConsultation(c._id)">
+              Delete
             </button>
-
           </div>
-
         </td>
       </ng-container>
 
@@ -90,10 +81,8 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 
     </table>
-
   </div>
 
-  <!-- Empty State -->
   @if (filteredConsultations().length === 0 && searchQuery()) {
     <div class="empty-state">
       <mat-icon>search_off</mat-icon>
@@ -108,7 +97,6 @@
     </div>
   }
 
-  <!-- Pagination -->
   <mat-paginator
     [length]="totalItems()"
     [pageSize]="pageSize()"

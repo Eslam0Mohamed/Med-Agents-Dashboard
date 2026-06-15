@@ -138,7 +138,7 @@ tr:hover {
   margin: 0;
 }
 
-/* Responsive */
+
 @media (max-width: 768px) {
   .consultations-container { padding: 12px; }
   .header h2 { font-size: 20px; }

@@ -13,6 +13,7 @@ import { Observable } from 'rxjs';
 export interface Patient {
   _id?: string;
   name: string;
+   nationalID: string;
   dateOfBirth: string;
   gender: 'male' | 'female';
   bloodType: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
@@ -22,21 +23,50 @@ export interface Patient {
   createdAt?: string;
 }
 
+export interface PrescriptionInfo {
+  medications: { name: string; dosage?: string; frequency?: string }[];
+  interactions: string[];
+  warnings: string[];
+}
+
+export interface ConsultationHistory {
+  consultationId: string;
+  date: string;
+  symptoms: string[];
+  diagnosis: string;
+  urgencyLevel: string;
+  suggestedSpecialist: string | null;
+  structuredNote: string | null;
+  prescription: PrescriptionInfo | null;
+}
+
+export interface IPatientHistory {
+  patient: Patient;
+  history: ConsultationHistory[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class PatientService {
   private apiUrl = 'http://localhost:5000/api/patients';
 
   constructor(private http: HttpClient) {}
 
-  getAll(): Observable<{ success: boolean; data: Patient[] }> {
-    
-    return this.http.get<{ success: boolean; data: Patient[] }>(this.apiUrl);
-  }
 
+getAll(search = '', page = 1, limit = 10): Observable<{
+  success: boolean;
+  data: Patient[];
+  pagination: { total: number; page: number; limit: number; totalPages: number } | null;
+}> {
+  let params = `?page=${page}&limit=${limit}`;
+  if (search) params += `&search=${search}`;
+  return this.http.get<any>(`${this.apiUrl}${params}`);
+}
   getById(id: string): Observable<{ success: boolean; data: Patient }> {
     return this.http.get<{ success: boolean; data: Patient }>(`${this.apiUrl}/${id}`);
   }
-
+  getHistory(id: string): Observable<{ success: boolean; data: IPatientHistory }> {
+    return this.http.get<{ success: boolean; data: IPatientHistory }>(`${this.apiUrl}/${id}/history`);
+  }
   create(patient: Partial<Patient>): Observable<{ success: boolean; data: Patient }> {
     return this.http.post<{ success: boolean; data: Patient }>(this.apiUrl, patient);
   }

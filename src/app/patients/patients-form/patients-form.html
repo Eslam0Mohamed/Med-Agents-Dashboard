@@ -21,7 +21,13 @@
         (ngModelChange)="updateField('name', $event)"
         placeholder="Patient full name" />
     </div>
-
+<div class="form-group">
+  <label>National ID *</label>
+  <input type="text"
+    [ngModel]="patient().nationalID"
+    (ngModelChange)="updateField('nationalID', $event)"
+    placeholder="Enter national ID" />
+</div>
     <div class="form-row">
       <div class="form-group">
         <label>Date of Birth *</label>
@@ -29,6 +35,7 @@
           [ngModel]="patient().dateOfBirth"
           (ngModelChange)="updateField('dateOfBirth', $event)" />
       </div>
+
       <div class="form-group">
         <label>Gender *</label>
         <select

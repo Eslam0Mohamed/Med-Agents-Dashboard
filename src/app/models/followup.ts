@@ -1,11 +1,20 @@
 export interface Followup {
   _id: string;
-  consultationId: string;
-  patientId: string;
+  consultationId?: {
+    _id: string;
+    doctorId?: {
+      _id: string;
+      name: string;
+    };
+  };
+  patientId?: {
+    _id: string;
+    name: string;
+  };
   instructions: string;
   scheduledDate: string;
   reminderSent: boolean;
-  status: 'pending' | 'done';
+  status: 'pending' | 'done' | 'cancelled';
   language: 'en' | 'ar';
   createdAt: string;
   updatedAt: string;

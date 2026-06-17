@@ -32,7 +32,7 @@ export class PatientsForm implements OnInit {
   constructor(
     private patientService: PatientService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
@@ -48,7 +48,8 @@ export class PatientsForm implements OnInit {
     this.isLoading.set(true);
     this.patientService.getById(this.patientId()).subscribe({
       next: (res) => {
-        this.patient.set(res.data);
+        const data = { ...res.data, dateOfBirth: res.data.dateOfBirth?.split('T')[0] };
+        this.patient.set(data);
         this.isLoading.set(false);
       },
       error: () => {
@@ -61,41 +62,41 @@ export class PatientsForm implements OnInit {
   addAllergy(): void {
     const val = this.allergyInput().trim();
     if (val) {
-      this.patient.update(p => ({
+      this.patient.update((p) => ({
         ...p,
-        allergies: [...(p.allergies || []), val]
+        allergies: [...(p.allergies || []), val],
       }));
       this.allergyInput.set('');
     }
   }
 
   removeAllergy(index: number): void {
-    this.patient.update(p => ({
+    this.patient.update((p) => ({
       ...p,
-      allergies: p.allergies?.filter((_, i) => i !== index)
+      allergies: p.allergies?.filter((_, i) => i !== index),
     }));
   }
 
   addCondition(): void {
     const val = this.conditionInput().trim();
     if (val) {
-      this.patient.update(p => ({
+      this.patient.update((p) => ({
         ...p,
-        chronicConditions: [...(p.chronicConditions || []), val]
+        chronicConditions: [...(p.chronicConditions || []), val],
       }));
       this.conditionInput.set('');
     }
   }
 
   removeCondition(index: number): void {
-    this.patient.update(p => ({
+    this.patient.update((p) => ({
       ...p,
-      chronicConditions: p.chronicConditions?.filter((_, i) => i !== index)
+      chronicConditions: p.chronicConditions?.filter((_, i) => i !== index),
     }));
   }
 
   updateField(field: keyof Patient, value: any): void {
-    this.patient.update(p => ({ ...p, [field]: value }));
+    this.patient.update((p) => ({ ...p, [field]: value }));
   }
 
   onSubmit(): void {

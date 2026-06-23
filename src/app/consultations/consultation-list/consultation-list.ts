@@ -5,10 +5,7 @@ import { RouterModule } from '@angular/router';
 import Swal from 'sweetalert2';
 
 import { MatTableModule } from '@angular/material/table';
-import {
-  MatPaginatorModule,
-  PageEvent,
-} from '@angular/material/paginator';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -68,11 +65,7 @@ export class ConsultationListComponent implements OnInit {
         this.filterLocally();
       },
       error: () => {
-        Swal.fire(
-          'Error',
-          'Failed to load consultations',
-          'error'
-        );
+        Swal.fire('Error', 'Failed to load consultations', 'error');
       },
     });
   }
@@ -84,23 +77,15 @@ export class ConsultationListComponent implements OnInit {
 
     if (query) {
       filtered = this.consultations().filter((consultation) => {
-        const patientName = this
-          .getPatientName(consultation.patientId)
-          .toLowerCase();
+        const patientName = this.getPatientName(consultation.patientId).toLowerCase();
 
-        const symptoms = (consultation.symptoms || [])
-          .join(', ')
-          .toLowerCase();
+        const symptoms = (consultation.symptoms || []).join(', ').toLowerCase();
 
-        const specialist = (
-          consultation.suggestedSpecialist || ''
-        ).toLowerCase();
+        const specialist = (consultation.suggestedSpecialist || '').toLowerCase();
 
         const status = (consultation.status || '').toLowerCase();
 
-        const urgency = (
-          consultation.urgencyLevel || ''
-        ).toLowerCase();
+        const urgency = (consultation.urgencyLevel || '').toLowerCase();
 
         return (
           patientName.includes(query) ||
@@ -114,9 +99,7 @@ export class ConsultationListComponent implements OnInit {
 
     const start = this.pageIndex() * this.pageSize();
 
-    this.filteredConsultations.set(
-      filtered.slice(start, start + this.pageSize())
-    );
+    this.filteredConsultations.set(filtered.slice(start, start + this.pageSize()));
 
     this.totalItems.set(filtered.length);
   }
@@ -155,10 +138,7 @@ export class ConsultationListComponent implements OnInit {
       this.consultationService.delete(id).subscribe({
         next: () => {
           this.consultations.update((list) =>
-            list.filter(
-              (consultation) =>
-                this.getConsultationId(consultation) !== id
-            )
+            list.filter((consultation) => this.getConsultationId(consultation) !== id),
           );
 
           this.filterLocally();
@@ -172,11 +152,7 @@ export class ConsultationListComponent implements OnInit {
           });
         },
         error: () => {
-          Swal.fire(
-            'Error',
-            'Failed to delete consultation',
-            'error'
-          );
+          Swal.fire('Error', 'Failed to delete consultation', 'error');
         },
       });
     });
@@ -219,8 +195,6 @@ export class ConsultationListComponent implements OnInit {
   }
 
   getPatientId(consultation: any): string {
-    return this.getId(
-      consultation?.patientId || consultation?.patient
-    );
+    return this.getId(consultation?.patientId || consultation?.patient);
   }
 }

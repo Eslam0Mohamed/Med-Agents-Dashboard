@@ -1,15 +1,9 @@
 <div class="consultations-container">
-
   <!-- Header -->
   <div class="header">
     <h2>Consultations</h2>
 
-    <a
-      mat-raised-button
-      color="primary"
-      routerLink="add"
-      class="new-btn"
-    >
+    <a mat-raised-button color="primary" routerLink="add" class="new-btn">
       <mat-icon>add</mat-icon>
       <span class="btn-text">New Consultation</span>
     </a>
@@ -31,12 +25,7 @@
 
   <!-- Table -->
   <div class="table-wrapper">
-    <table
-      mat-table
-      [dataSource]="filteredConsultations()"
-      class="mat-elevation-z2"
-    >
-
+    <table mat-table [dataSource]="filteredConsultations()" class="mat-elevation-z2">
       <ng-container matColumnDef="patientName">
         <th mat-header-cell *matHeaderCellDef>Patient</th>
 
@@ -57,10 +46,7 @@
         <th mat-header-cell *matHeaderCellDef>Urgency</th>
 
         <td mat-cell *matCellDef="let c">
-          <span
-            class="urgency-badge"
-            [ngClass]="c.urgencyLevel"
-          >
+          <span class="urgency-badge" [ngClass]="c.urgencyLevel">
             {{ c.urgencyLevel }}
           </span>
         </td>
@@ -78,10 +64,7 @@
         <th mat-header-cell *matHeaderCellDef>Status</th>
 
         <td mat-cell *matCellDef="let c">
-          <span
-            class="status-badge"
-            [ngClass]="c.status"
-          >
+          <span class="status-badge" [ngClass]="c.status">
             {{ c.status }}
           </span>
         </td>
@@ -91,11 +74,7 @@
         <th mat-header-cell *matHeaderCellDef>Follow-up</th>
 
         <td mat-cell *matCellDef="let c">
-          {{
-            c.followUpDate
-              ? (c.followUpDate | date: 'mediumDate')
-              : '—'
-          }}
+          {{ c.followUpDate ? (c.followUpDate | date: 'mediumDate') : '—' }}
         </td>
       </ng-container>
 
@@ -104,25 +83,7 @@
 
         <td mat-cell *matCellDef="let c">
           <div class="action-buttons">
-
-            <a
-              mat-stroked-button
-              color="accent"
-              [routerLink]="['/prescriptions/new']"
-              [queryParams]="{
-                consultationId: getConsultationId(c),
-                patientId: getPatientId(c)
-              }"
-            >
-              <mat-icon>medical_services</mat-icon>
-              Prescription
-            </a>
-
-            <a
-              mat-stroked-button
-              color="primary"
-              [routerLink]="['edit', getConsultationId(c)]"
-            >
+            <a mat-stroked-button color="primary" [routerLink]="['edit', getConsultationId(c)]">
               Edit
             </a>
 
@@ -133,21 +94,13 @@
             >
               Delete
             </button>
-
           </div>
         </td>
       </ng-container>
 
-      <tr
-        mat-header-row
-        *matHeaderRowDef="displayedColumns"
-      ></tr>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
 
-      <tr
-        mat-row
-        *matRowDef="let row; columns: displayedColumns"
-      ></tr>
-
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
     </table>
   </div>
 
@@ -172,5 +125,4 @@
     (page)="onPageChange($event)"
   >
   </mat-paginator>
-
 </div>

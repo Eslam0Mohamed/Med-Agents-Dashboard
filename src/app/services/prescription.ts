@@ -16,6 +16,15 @@ export interface PrescriptionPayload {
   medications: Medication[];
 }
 
+export interface QuickDrugCheckPayload {
+  newDrug: { name: string };
+  activeMedications: { name: string }[];
+  allergies: string[];
+  patientAge?: number | null;
+  patientGender?: string | null;
+  language: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -32,6 +41,17 @@ export class PrescriptionService {
     return new HttpHeaders({
       Authorization: `Bearer ${token}`,
     });
+  }
+
+  searchDrugs(name: string): Observable<any> {
+    return this.http.get(
+      `${this.prescriptionApiUrl}/drugs/search?name=${encodeURIComponent(name)}`,
+      { headers: this.getHeaders() },
+    );
+  }
+
+  getAllPrescriptions(): Observable<any> {
+    return this.http.get(this.prescriptionApiUrl, { headers: this.getHeaders() });
   }
 
   createPrescription(data: PrescriptionPayload): Observable<any> {
@@ -73,12 +93,20 @@ export class PrescriptionService {
   checkDrugSafetyForPatient(
     patientId: string,
     medications: Medication[],
-    language: string
+    language: string,
   ): Observable<any> {
     return this.http.post(
       `${this.drugSafetyApiUrl}/check/${patientId}`,
       { medications, language },
-      { headers: this.getHeaders() }
+      { headers: this.getHeaders() },
     );
+  }
+
+  // ─── Quick Drug Check ────────────────────────────────────────────────────
+  // بيشيك بسرعة على دواء جديد ضد الأدوية الشغالة دلوقتي ويرجع جملة واحدة بس
+  quickDrugCheck(payload: QuickDrugCheckPayload): Observable<any> {
+    return this.http.post(`${this.drugSafetyApiUrl}/quick-check`, payload, {
+      headers: this.getHeaders(),
+    });
   }
 }

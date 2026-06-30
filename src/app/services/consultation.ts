@@ -36,6 +36,12 @@ export class ConsultationService {
       { headers: this.getHeaders() }
     );
   }
+  getByDoctorId(doctorId: string): Observable<ConsultationResponse> {
+  return this.http.get<ConsultationResponse>(
+    `${this.apiUrl}/by-doctor/${doctorId}`,
+    { headers: this.getHeaders() }
+  );
+}
 
   getAIRecommendation(data: {
     rawInput: string;

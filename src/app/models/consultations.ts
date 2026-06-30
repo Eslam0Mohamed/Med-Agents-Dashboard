@@ -35,3 +35,12 @@ export interface ConsultationResponse {
   data: Consultations[];
   count: number;
 }
+export interface PopulatedPatientRef {
+  _id: string;
+  name: string;
+  age?: number;
+}
+
+export interface ConsultationWithPatient extends Omit<Consultations, 'patientId'> {
+  patientId: PopulatedPatientRef | string;
+}

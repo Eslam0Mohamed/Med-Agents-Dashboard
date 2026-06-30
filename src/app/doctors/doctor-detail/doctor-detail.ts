@@ -3,6 +3,20 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PatientService, Patient } from '../../services/patient';
+import { ConsultationService } from '../../services/consultation';
+import { ConsultationWithPatient } from '../../models/consultations';
+import { FollowupService } from '../../services/followup';
+import { Followup } from '../../models/followup';
+
+type TabKey = 'patients' | 'consultations' | 'followups';
+
+interface CalendarDay {
+  date: Date;
+  dateKey: string;
+  inCurrentMonth: boolean;
+  isToday: boolean;
+  hasActivity: boolean;
+}
 
 @Component({
   selector: 'app-doctor-detail',
@@ -13,20 +27,91 @@ import { PatientService, Patient } from '../../services/patient';
 export class DoctorDetail implements OnInit {
   doctor = signal<any>(null);
   patients = signal<Patient[]>([]);
+  consultations = signal<ConsultationWithPatient[]>([]);
+  followups = signal<Followup[]>([]);
 
   isLoading = signal(false);
   isLoadingPatients = signal(false);
+  isLoadingConsultations = signal(false);
+  isLoadingFollowups = signal(false);
   errorMessage = signal('');
 
   doctorId = signal('');
+  activeTab = signal<TabKey>('patients');
+
+  calendarMonth = signal(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  selectedDateKey = signal<string | null>(null);
 
   totalPatients = computed(() => this.patients().length);
+  totalConsultations = computed(() => this.consultations().length);
+  totalFollowups = computed(() => this.followups().length);
+
+  filteredConsultations = computed(() => {
+    const list = this.consultations();
+    const key = this.selectedDateKey();
+    if (!key) return list;
+    return list.filter((c) => this.toDateKey(c.createdAt) === key);
+  });
+
+  filteredFollowups = computed(() => {
+    const list = this.followups();
+    const key = this.selectedDateKey();
+    if (!key) return list;
+    return list.filter((f) => this.toDateKey(f.scheduledDate) === key);
+  });
+
+  calendarDays = computed<CalendarDay[]>(() => {
+    const monthStart = this.calendarMonth();
+    const year = monthStart.getFullYear();
+    const month = monthStart.getMonth();
+
+    const firstOfMonth = new Date(year, month, 1);
+    const startWeekday = firstOfMonth.getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const todayKey = this.toDateKey(new Date().toISOString());
+
+    const activityKeys = new Set<string>();
+    if (this.activeTab() === 'consultations') {
+      this.consultations().forEach((c) => activityKeys.add(this.toDateKey(c.createdAt)));
+    } else if (this.activeTab() === 'followups') {
+      this.followups().forEach((f) => activityKeys.add(this.toDateKey(f.scheduledDate)));
+    } else {
+      this.consultations().forEach((c) => activityKeys.add(this.toDateKey(c.createdAt)));
+      this.followups().forEach((f) => activityKeys.add(this.toDateKey(f.scheduledDate)));
+    }
+
+    const days: CalendarDay[] = [];
+
+    for (let i = 0; i < startWeekday; i++) {
+      const date = new Date(year, month, 1 - (startWeekday - i));
+      const dateKey = this.toDateKey(date.toISOString());
+      days.push({ date, dateKey, inCurrentMonth: false, isToday: dateKey === todayKey, hasActivity: activityKeys.has(dateKey) });
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(year, month, d);
+      const dateKey = this.toDateKey(date.toISOString());
+      days.push({ date, dateKey, inCurrentMonth: true, isToday: dateKey === todayKey, hasActivity: activityKeys.has(dateKey) });
+    }
+
+    while (days.length % 7 !== 0) {
+      const last = days[days.length - 1].date;
+      const date = new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1);
+      const dateKey = this.toDateKey(date.toISOString());
+      days.push({ date, dateKey, inCurrentMonth: false, isToday: dateKey === todayKey, hasActivity: activityKeys.has(dateKey) });
+    }
+
+    return days;
+  });
 
   private apiUrl = 'http://localhost:5000/api';
 
   constructor(
     private http: HttpClient,
     private patientService: PatientService,
+    private consultationService: ConsultationService,
+    private followupService: FollowupService,
     private route: ActivatedRoute,
     private router: Router,
   ) {}
@@ -40,6 +125,8 @@ export class DoctorDetail implements OnInit {
     this.doctorId.set(id);
     this.loadDoctor();
     this.loadDoctorPatients();
+    this.loadDoctorConsultations();
+    this.loadDoctorFollowups();
   }
 
   loadDoctor(): void {
@@ -70,6 +157,86 @@ export class DoctorDetail implements OnInit {
     });
   }
 
+  loadDoctorConsultations(): void {
+    this.isLoadingConsultations.set(true);
+    this.consultationService.getByDoctorId(this.doctorId()).subscribe({
+      next: (res) => {
+        this.consultations.set((res.data as unknown as ConsultationWithPatient[]) || []);
+        this.isLoadingConsultations.set(false);
+      },
+      error: () => {
+        this.errorMessage.set('Failed to load consultations for this doctor');
+        this.isLoadingConsultations.set(false);
+      },
+    });
+  }
+
+  loadDoctorFollowups(): void {
+    this.isLoadingFollowups.set(true);
+    this.followupService.getFollowupsByDoctorId(this.doctorId()).subscribe({
+      next: (res) => {
+        this.followups.set(res.data || []);
+        this.isLoadingFollowups.set(false);
+      },
+      error: () => {
+        this.errorMessage.set('Failed to load follow-ups for this doctor');
+        this.isLoadingFollowups.set(false);
+      },
+    });
+  }
+
+  setTab(tab: TabKey): void {
+    this.activeTab.set(tab);
+    this.selectedDateKey.set(null);
+  }
+
+  prevMonth(): void {
+    const current = this.calendarMonth();
+    this.calendarMonth.set(new Date(current.getFullYear(), current.getMonth() - 1, 1));
+  }
+
+  nextMonth(): void {
+    const current = this.calendarMonth();
+    this.calendarMonth.set(new Date(current.getFullYear(), current.getMonth() + 1, 1));
+  }
+
+  selectDay(day: CalendarDay): void {
+    if (this.selectedDateKey() === day.dateKey) {
+      this.selectedDateKey.set(null);
+    } else {
+      this.selectedDateKey.set(day.dateKey);
+    }
+  }
+
+  clearDateFilter(): void {
+    this.selectedDateKey.set(null);
+  }
+
+  monthLabel(): string {
+    return this.calendarMonth().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+
+  selectedDateLabel(): string {
+    const key = this.selectedDateKey();
+    if (!key) return '';
+    const [y, m, d] = key.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  }
+
+  private toDateKey(isoDate: string): string {
+    if (!isoDate) return '';
+    const d = new Date(isoDate);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   calculateAge(dateOfBirth: string): number {
     if (!dateOfBirth) return 0;
     const today = new Date();
@@ -78,6 +245,25 @@ export class DoctorDetail implements OnInit {
     const m = today.getMonth() - birth.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
     return age;
+  }
+
+  getPatientName(patientId: any): string {
+    if (!patientId) return 'Unknown';
+    if (typeof patientId === 'string') return 'Unknown';
+    return patientId.name || 'Unknown';
+  }
+
+  getUrgencyClass(level: string | undefined): string {
+    switch (level) {
+      case 'critical':
+        return 'urgent-critical';
+      case 'medium':
+        return 'urgent-medium';
+      case 'low':
+        return 'urgent-low';
+      default:
+        return '';
+    }
   }
 
   goToPatientHistory(patientId: string): void {

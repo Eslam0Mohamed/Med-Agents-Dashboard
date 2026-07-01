@@ -60,6 +60,6 @@ export class SelectPatient {
   }
 
   goBack(): void {
-    this.router.navigate(['/dashboard/consultations']);
+    this.router.navigate(['/consultations']);
   }
 }

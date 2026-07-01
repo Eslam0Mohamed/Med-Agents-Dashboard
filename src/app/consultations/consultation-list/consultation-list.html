@@ -1,110 +1,133 @@
-<div class="page">
-  <div class="page-header">
-    <div class="header-left">
-      <a routerLink="/dashboard" class="back-arrow">&#8592;</a>
-      <h2>Consultations</h2>
-    </div>
-    <a routerLink="add" class="new-btn">+ New Consultation</a>
+<div class="consultations-container">
+  <!-- Header -->
+  <div class="header">
+    <h2>Consultations</h2>
+
+    <a mat-raised-button color="primary" routerLink="add" class="new-btn">
+      <mat-icon>add</mat-icon>
+      <span class="btn-text">New Consultation</span>
+    </a>
   </div>
 
-  <div class="search-card">
-    <label>Search Consultations</label>
-    <div class="search-row">
-      <input
-        type="text"
-        [ngModel]="searchQuery()"
-        (ngModelChange)="searchQuery.set($event)"
-        (keyup.enter)="applySearch()"
-        placeholder="Search by patient name, symptoms, specialist, status..."
-      />
-      <button (click)="applySearch()" [disabled]="isLoading()">Search</button>
-      <button class="clear-btn" (click)="clearSearch()">Clear</button>
-    </div>
+  <!-- Search -->
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Search</mat-label>
+
+    <input
+      matInput
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+      placeholder="Search consultations..."
+    />
+
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <!-- Table -->
+  <div class="table-wrapper">
+    <table mat-table [dataSource]="filteredConsultations()" class="mat-elevation-z2">
+      <ng-container matColumnDef="patientName">
+        <th mat-header-cell *matHeaderCellDef>Patient</th>
+
+        <td mat-cell *matCellDef="let c">
+          {{ getPatientName(c.patientId) }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="symptoms">
+        <th mat-header-cell *matHeaderCellDef>Symptoms</th>
+
+        <td mat-cell *matCellDef="let c">
+          {{ (c.symptoms || []).join(', ') }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="urgencyLevel">
+        <th mat-header-cell *matHeaderCellDef>Urgency</th>
+
+        <td mat-cell *matCellDef="let c">
+          <span class="urgency-badge" [ngClass]="c.urgencyLevel">
+            {{ c.urgencyLevel }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="suggestedSpecialist">
+        <th mat-header-cell *matHeaderCellDef>Specialist</th>
+
+        <td mat-cell *matCellDef="let c">
+          {{ c.suggestedSpecialist || '—' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+
+        <td mat-cell *matCellDef="let c">
+          <span class="status-badge" [ngClass]="c.status">
+            {{ c.status }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="followUpDate">
+        <th mat-header-cell *matHeaderCellDef>Follow-up</th>
+
+        <td mat-cell *matCellDef="let c">
+          {{ c.followUpDate ? (c.followUpDate | date: 'mediumDate') : '—' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+
+        <td mat-cell *matCellDef="let c">
+          <div class="action-buttons">
+            <a
+              mat-stroked-button
+              color="primary"
+              [routerLink]="['/dashboard/patients/visit', getPatientId(c)]"
+              [queryParams]="{ editConsultationId: getConsultationId(c) }"
+            >
+              Edit
+            </a>
+
+            <button
+              mat-stroked-button
+              color="warn"
+              (click)="deleteConsultation(getConsultationId(c))"
+            >
+              Delete
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
   </div>
 
-  @if (isLoading()) {
-    <div class="loading">Loading...</div>
-  }
-
-  @if (!isLoading() && pagedConsultations().length === 0) {
-    <div class="empty">No consultations to display.</div>
-  }
-
-  @if (!isLoading() && pagedConsultations().length > 0) {
-    <div class="table-card">
-      <table>
-        <thead>
-          <tr>
-            <th>Patient</th>
-            <th>Symptoms</th>
-            <th>Urgency</th>
-            <th>Specialist</th>
-            <th>Status</th>
-            <th>Follow-up</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (c of pagedConsultations(); track c._id) {
-            <tr>
-              <td>{{ getPatientName(c.patientId) }}</td>
-              <td>{{ (c.symptoms || []).join(', ') }}</td>
-              <td>
-                <span class="urgency-badge" [ngClass]="(c.urgencyLevel || '').toLowerCase()">
-                  {{ c.urgencyLevel }}
-                </span>
-              </td>
-              <td>{{ c.suggestedSpecialist || '—' }}</td>
-              <td>
-                <span class="status-badge" [ngClass]="(c.status || '').toLowerCase()">
-                  {{ c.status }}
-                </span>
-              </td>
-              <td>{{ c.followUpDate ? (c.followUpDate | date: 'mediumDate') : '—' }}</td>
-              <td class="actions">
-                <a
-                  class="btn-details"
-                  [routerLink]="['/dashboard/consultations', getConsultationId(c)]"
-                >
-                  Details
-                </a>
-                <a
-                  class="btn-edit"
-                  [routerLink]="['/dashboard/patients/visit', getPatientId(c)]"
-                  [queryParams]="{ editConsultationId: getConsultationId(c) }"
-                >
-                  Edit
-                </a>
-                <button
-                  class="btn-delete"
-                  disabled
-                  title="Deleting consultations is restricted"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-
-      <div class="pagination">
-        <div class="pagination-controls">
-          <button (click)="goToPage(pageIndex() - 1)" [disabled]="pageIndex() === 0">
-            &larr; Prev
-          </button>
-          @for (p of pages(); track p) {
-            <button [class.active]="p === pageIndex()" (click)="goToPage(p)">{{ p + 1 }}</button>
-          }
-          <button (click)="goToPage(pageIndex() + 1)" [disabled]="pageIndex() >= totalPages() - 1">
-            Next &rarr;
-          </button>
-        </div>
-
-        <div class="pagination-info">
-          {{ pageIndex() + 1 }} of {{ totalPages() }} &ndash; {{ totalItems() }} consultations
-        </div>
-      </div>
+  @if (filteredConsultations().length === 0 && searchQuery()) {
+    <div class="empty-state">
+      <mat-icon>search_off</mat-icon>
+      <p>No matching consultations found</p>
     </div>
   }
+
+  @if (filteredConsultations().length === 0 && !searchQuery()) {
+    <div class="empty-state">
+      <mat-icon>medical_services</mat-icon>
+      <p>No consultations available</p>
+    </div>
+  }
+
+  <mat-paginator
+    [length]="totalItems()"
+    [pageSize]="pageSize()"
+    [pageSizeOptions]="[5, 10, 25]"
+    (page)="onPageChange($event)"
+  >
+  </mat-paginator>
 </div>

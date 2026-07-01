@@ -1,9 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 
 import Swal from 'sweetalert2';
+
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { ConsultationService } from '../../services/consultation';
 import { Consultations } from '../../models/consultations';
@@ -14,7 +20,12 @@ import { Consultations } from '../../models/consultations';
   imports: [
     CommonModule,
     RouterModule,
-    FormsModule
+    MatTableModule,
+    MatPaginatorModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
   ],
   templateUrl: './consultation-list.html',
   styleUrl: './consultation-list.css',
@@ -26,20 +37,17 @@ export class ConsultationListComponent implements OnInit {
   searchQuery = signal('');
   pageSize = signal(10);
   pageIndex = signal(0);
-  isLoading = signal(false);
+  totalItems = signal(0);
 
-  // Pagination
-  totalItems = computed(() => this.filteredConsultations().length);
-
-  pagedConsultations = computed(() => {
-    const start = this.pageIndex() * this.pageSize();
-    return this.filteredConsultations().slice(start, start + this.pageSize());
-  });
-
-  totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()));
-  pages = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i));
-  startItem = computed(() => this.pageIndex() * this.pageSize() + 1);
-  endItem = computed(() => Math.min((this.pageIndex() + 1) * this.pageSize(), this.totalItems()));
+  displayedColumns = [
+    'patientName',
+    'symptoms',
+    'urgencyLevel',
+    'suggestedSpecialist',
+    'status',
+    'followUpDate',
+    'actions',
+  ];
 
   constructor(private consultationService: ConsultationService) {}
 
@@ -48,31 +56,35 @@ export class ConsultationListComponent implements OnInit {
   }
 
   loadConsultations(): void {
-    this.isLoading.set(true);
     this.consultationService.getAll().subscribe({
       next: (res) => {
         const consultations = res?.data || [];
+
         this.consultations.set(consultations);
+        this.totalItems.set(res?.count ?? consultations.length);
         this.filterLocally();
-        this.isLoading.set(false);
       },
       error: () => {
         Swal.fire('Error', 'Failed to load consultations', 'error');
-        this.isLoading.set(false);
       },
     });
   }
 
   filterLocally(): void {
     const query = this.searchQuery().toLowerCase().trim();
+
     let filtered = this.consultations();
 
     if (query) {
       filtered = this.consultations().filter((consultation) => {
         const patientName = this.getPatientName(consultation.patientId).toLowerCase();
+
         const symptoms = (consultation.symptoms || []).join(', ').toLowerCase();
+
         const specialist = (consultation.suggestedSpecialist || '').toLowerCase();
+
         const status = (consultation.status || '').toLowerCase();
+
         const urgency = (consultation.urgencyLevel || '').toLowerCase();
 
         return (
@@ -85,31 +97,26 @@ export class ConsultationListComponent implements OnInit {
       });
     }
 
-    this.filteredConsultations.set(filtered);
-    this.pageIndex.set(0);
+    const start = this.pageIndex() * this.pageSize();
+
+    this.filteredConsultations.set(filtered.slice(start, start + this.pageSize()));
+
+    this.totalItems.set(filtered.length);
   }
 
-  goToPage(index: number): void {
-    if (index < 0 || index >= this.totalPages()) return;
-    this.pageIndex.set(index);
-  }
-
-  onPageSizeChange(event: Event): void {
-    this.pageSize.set(Number((event.target as HTMLSelectElement).value));
-    this.pageIndex.set(0);
-  }
-
-  applySearch(): void {
+  onPageChange(event: PageEvent): void {
+    this.pageIndex.set(event.pageIndex);
+    this.pageSize.set(event.pageSize);
     this.filterLocally();
   }
 
-  clearSearch(): void {
-    this.searchQuery.set('');
+  onSearch(value: string): void {
+    this.searchQuery.set(value);
+    this.pageIndex.set(0);
     this.filterLocally();
   }
 
   deleteConsultation(id: string): void {
-    // Note: The Delete button is disabled in the UI, but we keep the logic intact
     Swal.fire({
       title: 'Are you sure?',
       text: 'This consultation, and its related follow-up and prescription, will be deleted permanently.',
@@ -133,7 +140,9 @@ export class ConsultationListComponent implements OnInit {
           this.consultations.update((list) =>
             list.filter((consultation) => this.getConsultationId(consultation) !== id),
           );
+
           this.filterLocally();
+
           Swal.fire({
             title: 'Deleted!',
             text: 'Consultation deleted successfully.',
@@ -151,26 +160,33 @@ export class ConsultationListComponent implements OnInit {
 
   getPatientName(patient: any): string {
     if (!patient) return 'Unknown';
+
     if (typeof patient === 'string') {
       return patient;
     }
+
     return patient.name || patient._id || 'Unknown';
   }
 
   getId(value: any): string {
     if (!value) return '';
+
     if (typeof value === 'string') {
       return value;
     }
+
     if (value._id) {
       return this.getId(value._id);
     }
+
     if (value.id) {
       return this.getId(value.id);
     }
+
     if (value.$oid) {
       return value.$oid;
     }
+
     return '';
   }
 

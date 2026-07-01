@@ -1,0 +1,218 @@
+.cd-page {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+.cd-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.cd-header-text h2 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 800;
+  color: #2152b3;
+}
+
+.cd-header-text p {
+  margin: 0;
+  font-size: 14px;
+  color: #9aa0ab;
+}
+
+.cd-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #dbe4ff;
+  color: #2152b3;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(33, 82, 179, 0.08);
+  white-space: nowrap;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
+}
+.cd-back-btn:hover {
+  background: #f3f6ff;
+  box-shadow: 0 3px 10px rgba(33, 82, 179, 0.14);
+}
+
+.cd-back-arrow {
+  font-size: 15px;
+}
+
+/* ─── Edit row ───────────────────────────────────────────────────────────── */
+.cd-edit-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+
+.cd-edit-btn {
+  background: #fef3e2;
+  border: 1px solid #fcd9a8;
+  color: #b45309;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.cd-edit-btn:hover {
+  background: #fde9c8;
+}
+
+/* ─── Card ───────────────────────────────────────────────────────────────── */
+.cd-card {
+  background: #fff;
+  border-radius: 18px;
+  border-left: 5px solid #2152b3;
+  padding: 8px 32px;
+  box-shadow: 0 8px 24px rgba(20, 30, 60, 0.07);
+}
+
+.cd-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 0;
+  border-bottom: 1px solid #f0f1f5;
+}
+
+.cd-row-last {
+  border-bottom: none;
+}
+
+.cd-label {
+  flex: 0 0 200px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #2152b3;
+}
+
+.cd-value {
+  flex: 1;
+  text-align: right;
+  font-size: 15px;
+  color: #333;
+  line-height: 1.6;
+}
+
+.cd-strong {
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+/* ─── Medications list ───────────────────────────────────────────────────── */
+.cd-med-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: right;
+}
+.cd-med-list li {
+  margin-bottom: 6px;
+}
+.cd-med-list li:last-child {
+  margin-bottom: 0;
+}
+
+/* ─── Urgency badge ──────────────────────────────────────────────────────── */
+.cd-badge-urgency {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.cd-badge-urgency-low {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+.cd-badge-urgency-medium {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+.cd-badge-urgency-critical {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+/* ─── Status badge ───────────────────────────────────────────────────────── */
+.cd-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.cd-badge-completed {
+  background: #dcfce7;
+  color: #166534;
+}
+.cd-badge-pending {
+  background: #fef3e2;
+  color: #b45309;
+}
+.cd-badge-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ─── States ─────────────────────────────────────────────────────────────── */
+.cd-loading {
+  color: #888;
+  padding: 20px;
+}
+.cd-error {
+  color: #e53e3e;
+  padding: 20px;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .cd-page {
+    padding: 16px;
+  }
+  .cd-header {
+    flex-direction: column;
+  }
+  .cd-header-text h2 {
+    font-size: 22px;
+  }
+  .cd-card {
+    padding: 4px 18px;
+  }
+  .cd-row {
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 0;
+  }
+  .cd-label {
+    flex: none;
+  }
+  .cd-value {
+    text-align: left;
+  }
+  .cd-med-list {
+    text-align: left;
+  }
+}

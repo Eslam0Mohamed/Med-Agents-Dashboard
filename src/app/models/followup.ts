@@ -8,6 +8,19 @@ export interface Followup {
     };
     structuredNote?: string;
   };
+  // بتتحدد بس بعد ما الفولو أب تتكمّل (Complete Follow-up)، وبتشاور على
+  // زيارة الإكمال نفسها (مختلفة عن consultationId اللي فضلت الكونسلتيشن الأصلية)
+  completionConsultationId?: {
+    _id: string;
+    doctorId?: {
+      _id: string;
+      name: string;
+    };
+    structuredNote?: string;
+    rawInput?: string;
+    symptoms?: string[];
+    diagnosis?: string;
+  };
   patientId?: {
     _id: string;
     name: string;

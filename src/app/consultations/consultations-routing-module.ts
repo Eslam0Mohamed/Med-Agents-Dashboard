@@ -14,9 +14,9 @@ const routes: Routes = [
       import('../patients/select-patient/select-patient').then((m) => m.SelectPatient),
   },
   {
-    path: 'edit/:id',
+    path: ':id',
     loadComponent: () =>
-      import('./consultation-form/consultation-form').then((m) => m.ConsultationFormComponent),
+      import('./consultation-details/consultation-details').then((m) => m.ConsultationDetails),
   },
 ];
 

@@ -20,15 +20,18 @@ export class FollowupDetails implements OnInit {
   errorMessage = signal('');
 
   patientName = computed(() => this.followup()?.patientId?.name || '—');
-  doctorName = computed(() => this.followup()?.consultationId?.doctorId?.name || '—');
+  private effectiveConsultation = computed(
+    () => this.followup()?.completionConsultationId || this.followup()?.consultationId,
+  );
+  doctorName = computed(() => this.effectiveConsultation()?.doctorId?.name || '—');
   doctorNotes = computed(
-    () => this.followup()?.consultationId?.rawInput || this.followup()?.instructions || '—',
+    () => this.effectiveConsultation()?.rawInput || this.followup()?.instructions || '—',
   );
   symptoms = computed(() => {
-    const list = this.followup()?.consultationId?.symptoms;
+    const list = this.effectiveConsultation()?.symptoms;
     return Array.isArray(list) && list.length ? list.join(', ') : '—';
   });
-  diagnosis = computed(() => this.followup()?.consultationId?.diagnosis || '—');
+  diagnosis = computed(() => this.effectiveConsultation()?.diagnosis || '—');
   scheduledDate = computed(() => this.followup()?.scheduledDate || null);
   status = computed(() => this.followup()?.status || 'pending');
 
@@ -54,7 +57,8 @@ export class FollowupDetails implements OnInit {
         this.followup.set(res?.data || null);
         this.isLoading.set(false);
 
-        const consultationId = res?.data?.consultationId?._id;
+        const consultationId =
+          res?.data?.completionConsultationId?._id || res?.data?.consultationId?._id;
         if (consultationId) {
           this.loadPrescription(consultationId);
         }
@@ -83,8 +87,13 @@ export class FollowupDetails implements OnInit {
   }
 
   editFollowup(): void {
-    const consultationId = this.followup()?.consultationId?._id;
-    if (!consultationId) return;
-    this.router.navigate(['/dashboard/consultations/edit', consultationId]);
+    const patientId =
+      typeof this.followup()?.patientId === 'object'
+        ? this.followup()?.patientId?._id
+        : this.followup()?.patientId;
+    if (!patientId) return;
+    this.router.navigate(['/dashboard/patients/visit', patientId], {
+      queryParams: { followupId: this.followupId() },
+    });
   }
 }

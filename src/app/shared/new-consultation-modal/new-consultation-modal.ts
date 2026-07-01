@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { ConsultationService } from '../../services/consultation';
+import { FollowupService } from '../../services/followup';
 import {
   ClinicalInsightsCardComponent,
   AiRecommendationResult,
@@ -23,9 +24,14 @@ import {
  * On save, emits the created consultation so the parent can immediately
  * open the PrescriptionModal, same as React.
  *
- * Used as a popup from patient-history's "New Consultation" button, and
- * also covers the "complete this follow-up" case when a followupId is
- * passed in.
+ * Used from the patient-visit page for three flows:
+ * - Plain "New Consultation" (no extra input) → creates a new consultation.
+ * - "Complete Follow-up" (followupId set, existingConsultation null) →
+ *   creates a new consultation linked to that follow-up.
+ * - "Edit" (existingConsultation set) → prefills the form from the existing
+ *   consultation and PATCHes it in place instead of creating a new one.
+ *   If followupId is also set in this case, the follow-up's instructions
+ *   get synced with the freshly-edited note on save.
  */
 @Component({
   selector: 'app-new-consultation-modal',
@@ -39,6 +45,7 @@ export class NewConsultationModalComponent implements OnChanges {
   @Input() patientName = '';
   @Input() followupId: string | null = null; // لو موجودة، يبقى ده "Complete Follow-up"
   @Input() followupInstructions = '';
+  @Input() existingConsultation: any = null; // لو موجودة، يبقى ده "Edit" مش "Create"
 
   @Output() closed = new EventEmitter<void>();
   @Output() saved = new EventEmitter<{ consultationId: string; patientId: string }>();
@@ -55,27 +62,60 @@ export class NewConsultationModalComponent implements OnChanges {
   isSaved = signal(false); // لازم يدوس Get AI Recommendation الأول
   isSaving = signal(false);
 
-  constructor(private consultationService: ConsultationService) {}
+  get isEditMode(): boolean {
+    return !!this.existingConsultation;
+  }
+
+  constructor(
+    private consultationService: ConsultationService,
+    private followupService: FollowupService,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['isOpen'] && this.isOpen) {
+    if ((changes['isOpen'] && this.isOpen) || changes['existingConsultation']) {
       this.resetForm();
     }
   }
 
   private resetForm(): void {
-    this.rawInput.set('');
-    this.symptoms.set('');
-    this.diagnosis.set('');
-    this.language.set('en');
-    this.isChronic.set(false);
-    this.followUpDate.set('');
-    this.aiResult.set(null);
-    this.isSaved.set(false);
+    const c = this.existingConsultation;
+
+    if (c) {
+      // وضع التعديل: نملى الفورم بالبيانات الموجودة بالفعل
+      this.rawInput.set(c.rawInput || '');
+      this.symptoms.set((c.symptoms || []).join(', '));
+      this.diagnosis.set(c.diagnosis || '');
+      this.language.set(c.language || 'en');
+      this.isChronic.set(!!c.isChronic);
+      this.followUpDate.set(this.toDateInputValue(c.followUpDate));
+      this.aiResult.set({
+        structuredNote: c.structuredNote,
+        suggestedSpecialist: c.suggestedSpecialist,
+        urgencyLevel: c.urgencyLevel,
+      });
+      this.isSaved.set(true);
+    } else {
+      this.rawInput.set('');
+      this.symptoms.set('');
+      this.diagnosis.set('');
+      this.language.set('en');
+      this.isChronic.set(false);
+      this.followUpDate.set('');
+      this.aiResult.set(null);
+      this.isSaved.set(false);
+    }
+  }
+
+  private toDateInputValue(value?: string): string {
+    if (!value) return '';
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().split('T')[0];
   }
 
   onFieldChanged(): void {
-    // أي تعديل بعد الحصول على رأي الـ AI يبطّله، عشان الدكتور يطلب رأي جديد قبل الحفظ
+    // أي تعديل في الملاحظات أو الأعراض بعد الحصول على رأي الـ AI يبطّله، عشان
+    // الدكتور يضطر يطلب رأي جديد قبل الحفظ
     this.isSaved.set(false);
   }
 
@@ -142,16 +182,73 @@ export class NewConsultationModalComponent implements OnChanges {
 
     this.isSaving.set(true);
 
+    const symptomsArray = this.symptoms()
+      .split(',')
+      .map((s: string) => s.trim())
+      .filter((s: string) => s.length > 0);
+
+    const ai = this.aiResult();
+
+    if (this.isEditMode) {
+      // ─── تعديل كونسلتيشن موجودة ─────────────────────────────────────────
+      const consultationId = this.existingConsultation._id;
+      const payload: any = {
+        rawInput: this.rawInput().trim(),
+        diagnosis: this.diagnosis().trim(),
+        language: this.language(),
+        isChronic: this.isChronic(),
+        symptoms: symptomsArray,
+        structuredNote: ai?.structuredNote,
+        suggestedSpecialist: ai?.suggestedSpecialist,
+        urgencyLevel: ai?.urgencyLevel,
+      };
+      if (this.followUpDate()) {
+        payload.followUpDate = this.followUpDate();
+      }
+
+      this.consultationService.update(consultationId, payload).subscribe({
+        next: () => {
+          this.isSaving.set(false);
+
+          // لو التعديل ده لزيارة إكمال فولو أب، حدّث instructions الفولو أب
+          // كمان عشان تفضل متزامنة مع أحدث ملاحظة
+          if (this.followupId) {
+            this.followupService
+              .updateInstructions(
+                this.followupId,
+                ai?.structuredNote || this.rawInput().trim(),
+              )
+              .subscribe();
+          }
+
+          Swal.fire({
+            title: 'Updated Successfully',
+            text: this.isChronic()
+              ? 'Consultation updated and diagnosis added to patient chronic diseases history.'
+              : 'Consultation record updated successfully.',
+            icon: 'success',
+            timer: 1800,
+            showConfirmButton: false,
+          });
+
+          this.saved.emit({ consultationId, patientId: this.patientId! });
+        },
+        error: (err: any) => {
+          this.isSaving.set(false);
+          Swal.fire('Error', err?.error?.message || 'Failed to update consultation', 'error');
+        },
+      });
+      return;
+    }
+
+    // ─── إنشاء كونسلتيشن جديدة (عادية أو إكمال فولو أب) ─────────────────────
     const payload: any = {
       patientId: this.patientId,
       rawInput: this.rawInput().trim(),
       diagnosis: this.diagnosis().trim(),
       language: this.language(),
       isChronic: this.isChronic(),
-      symptoms: this.symptoms()
-        .split(',')
-        .map((s: string) => s.trim())
-        .filter((s: string) => s.length > 0),
+      symptoms: symptomsArray,
     };
 
     if (this.followUpDate()) {

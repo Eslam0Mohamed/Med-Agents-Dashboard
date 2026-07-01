@@ -47,8 +47,8 @@ function calculateAge(dob?: string | null): number | null {
 
 /**
  * PrescriptionModal — shared standalone component used by both the
- * consultation-form ("Save Record" step) and patient-history (follow-up /
- * edit-in-place flow), matching the React PrescriptionModal exactly:
+ * patient-visit page ("Save Record" step) and prescription editing flows,
+ * matching the React PrescriptionModal exactly:
  * dynamic medication rows with FDA autocomplete + active ingredient capture,
  * structured dosage/frequency/duration fields, a chronic checkbox, and a
  * live per-medication Quick Drug Check safety panel.

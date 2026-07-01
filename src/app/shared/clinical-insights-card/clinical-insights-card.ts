@@ -10,8 +10,7 @@ export interface AiRecommendationResult {
 /**
  * ClinicalInsightsCard — shared sidebar card showing the AI Recommendation
  * result (urgency level / suggested specialist / structured note), matching
- * the React "Clinical Insights" card exactly. Used by consultation-form and
- * the inline follow-up form in patient-history.
+ * the React "Clinical Insights" card exactly. Used by the patient-visit page.
  */
 @Component({
   selector: 'app-clinical-insights-card',

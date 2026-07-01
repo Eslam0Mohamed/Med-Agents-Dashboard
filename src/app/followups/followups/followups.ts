@@ -150,18 +150,24 @@ export class Followups implements OnInit {
   }
 
   // ─── Edit Followup ──────────────────────────────────────────────────────
-  // متاحة بس للفولو أب اللي خلصت (confirmed)، بتفتح فورم تعديل الكونسلتيشن
-  // اللي اتعملت لما الدكتور كمّل الفولو أب ده
+  // متاحة بس للفولو أب اللي خلصت (confirmed)، بتوديك لنفس صفحة إكمال الفولو أب
+  // (patient-visit) عشان تعمل الكونسلتيشن والروشتة من جديد لنفس الفولو أب
   editFollowup(followup: Followup): void {
     if (followup.status !== 'confirmed') return;
 
-    const consultationId = followup.consultationId?._id;
-    if (!consultationId) {
-      this.errorMessage.set('Cannot find the consultation for this follow-up');
+    const patientId =
+      typeof followup.patientId === 'object'
+        ? (followup.patientId as any)?._id
+        : followup.patientId;
+
+    if (!patientId) {
+      this.errorMessage.set('Cannot find patient for this follow-up');
       return;
     }
 
-    this.router.navigate(['/dashboard/consultations/edit', consultationId]);
+    this.router.navigate(['/dashboard/patients/visit', patientId], {
+      queryParams: { followupId: followup._id },
+    });
   }
 
   // بدل الحذف، بنغير الحالة لـ cancelled

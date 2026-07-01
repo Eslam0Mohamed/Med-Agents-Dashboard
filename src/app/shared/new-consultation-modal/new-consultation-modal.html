@@ -3,7 +3,17 @@
     <div class="ncm-panel" (click)="$event.stopPropagation()">
       <div class="ncm-header">
         <div>
-          <h2>{{ followupId ? 'Complete Follow-up' : 'New Consultation' }}</h2>
+          <h2>
+            {{
+              isEditMode
+                ? followupId
+                  ? 'Edit Follow-up Visit'
+                  : 'Edit Consultation'
+                : followupId
+                  ? 'Complete Follow-up'
+                  : 'New Consultation'
+            }}
+          </h2>
           <p class="ncm-patient-line">{{ patientName }}</p>
         </div>
         <button type="button" class="ncm-close-btn" (click)="close()" aria-label="Close">✕</button>
@@ -108,12 +118,16 @@
           <button type="button" class="ncm-save-btn" [disabled]="isSaving()" (click)="saveRecord()">
             {{
               isSaving()
-                ? followupId
-                  ? 'Completing...'
-                  : 'Saving...'
-                : followupId
-                  ? 'Complete Follow-up'
-                  : 'Save Record'
+                ? isEditMode
+                  ? 'Saving Changes...'
+                  : followupId
+                    ? 'Completing...'
+                    : 'Saving...'
+                : isEditMode
+                  ? 'Save Changes'
+                  : followupId
+                    ? 'Complete Follow-up'
+                    : 'Save Record'
             }}
           </button>
         }

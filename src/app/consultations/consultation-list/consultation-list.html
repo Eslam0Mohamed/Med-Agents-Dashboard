@@ -83,7 +83,12 @@
 
         <td mat-cell *matCellDef="let c">
           <div class="action-buttons">
-            <a mat-stroked-button color="primary" [routerLink]="['edit', getConsultationId(c)]">
+            <a
+              mat-stroked-button
+              color="primary"
+              [routerLink]="['/dashboard/patients/visit', getPatientId(c)]"
+              [queryParams]="{ editConsultationId: getConsultationId(c) }"
+            >
               Edit
             </a>
 

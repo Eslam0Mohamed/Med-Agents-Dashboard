@@ -13,6 +13,11 @@ const routes: Routes = [
     loadComponent: () =>
       import('../patients/select-patient/select-patient').then((m) => m.SelectPatient),
   },
+  {
+    path: ':id',
+    loadComponent: () =>
+      import('./consultation-details/consultation-details').then((m) => m.ConsultationDetails),
+  },
 ];
 
 @NgModule({

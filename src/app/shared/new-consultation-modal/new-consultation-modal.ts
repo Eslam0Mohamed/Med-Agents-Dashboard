@@ -45,12 +45,6 @@ export class NewConsultationModalComponent implements OnChanges {
   @Input() patientName = '';
   @Input() followupId: string | null = null; // لو موجودة، يبقى ده "Complete Follow-up"
   @Input() followupInstructions = '';
-  // ملخص الكونسلتيشن الأصلية اللي جدولت الفولو أب دي (أعراض/تشخيص/ملاحظات)
-  @Input() followupConsultationSummary: {
-    rawInput?: string;
-    symptoms?: string[];
-    diagnosis?: string;
-  } | null = null;
   @Input() existingConsultation: any = null; // لو موجودة، يبقى ده "Edit" مش "Create"
 
   @Output() closed = new EventEmitter<void>();

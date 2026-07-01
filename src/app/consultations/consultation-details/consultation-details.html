@@ -1,0 +1,107 @@
+<div class="cd-page">
+  <div class="cd-header">
+    <div class="cd-header-text">
+      <h2>Consultation Details</h2>
+      <p>Detailed consultation record, diagnosis, and prescription details.</p>
+    </div>
+    <button class="cd-back-btn" (click)="goBack()">
+      <span class="cd-back-arrow">&#8592;</span> Back To Consultations
+    </button>
+  </div>
+
+  @if (!isLoading() && consultation()) {
+    <div class="cd-edit-row">
+      <button class="cd-edit-btn" (click)="editConsultation()">Edit Consultation</button>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="cd-loading">Loading...</div>
+  }
+
+  @if (errorMessage()) {
+    <div class="cd-error">{{ errorMessage() }}</div>
+  }
+
+  @if (!isLoading() && consultation()) {
+    <div class="cd-card">
+      <div class="cd-row">
+        <span class="cd-label">Patient</span>
+        <span class="cd-value">{{ patientName() }}</span>
+      </div>
+
+      <div class="cd-row">
+        <span class="cd-label">Doctor</span>
+        <span class="cd-value">{{ doctorName() }}</span>
+      </div>
+
+      <div class="cd-row">
+        <span class="cd-label">Doctor's Notes (Raw Input)</span>
+        <span class="cd-value">{{ rawInput() }}</span>
+      </div>
+
+      <div class="cd-row">
+        <span class="cd-label">Symptoms</span>
+        <span class="cd-value">{{ symptoms() }}</span>
+      </div>
+
+      <div class="cd-row">
+        <span class="cd-label">Diagnosis</span>
+        <span class="cd-value cd-strong">{{ diagnosis() }}</span>
+      </div>
+
+      <div class="cd-row">
+        <span class="cd-label">Urgency Level</span>
+        <span class="cd-value">
+          <span [class]="'cd-badge-urgency cd-badge-urgency-' + urgencyLevel()">
+            {{ urgencyLevel() }}
+          </span>
+        </span>
+      </div>
+
+      <div class="cd-row">
+        <span class="cd-label">Suggested Specialist</span>
+        <span class="cd-value">{{ suggestedSpecialist() }}</span>
+      </div>
+
+      <div class="cd-row">
+        <span class="cd-label">Prescription / Medications</span>
+        <span class="cd-value">
+          @if (medications().length === 0) {
+            No medications issued.
+          } @else {
+            <ul class="cd-med-list">
+              @for (med of medications(); track med.name) {
+                <li>
+                  <strong>{{ med.name }}</strong>
+                  — {{ med.dose || (med.dosageAmount + ' ' + med.dosageUnit) }},
+                  {{ med.frequency || (med.frequencyCount + 'x ' + med.frequencyPeriod) }}
+                  @if (!med.isChronic && med.duration) {
+                    , for {{ med.duration }}
+                  }
+                  @if (med.isChronic) {
+                    (chronic)
+                  }
+                </li>
+              }
+            </ul>
+          }
+        </span>
+      </div>
+
+      <div class="cd-row">
+        <span class="cd-label">Follow-up Date</span>
+        <span class="cd-value cd-strong">
+          {{ followUpDate() ? (followUpDate() | date: 'EEE, MMM d, y') : '—' }}
+        </span>
+      </div>
+
+      <div class="cd-row cd-row-last">
+        <span class="cd-label">Status</span>
+        <span class="cd-value">
+          <span [class]="'cd-badge cd-badge-' + status()">{{ status() }}</span>
+        </span>
+      </div>
+    </div>
+  }
+</div>

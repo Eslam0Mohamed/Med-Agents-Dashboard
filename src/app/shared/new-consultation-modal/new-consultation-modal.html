@@ -19,33 +19,9 @@
         <button type="button" class="ncm-close-btn" (click)="close()" aria-label="Close">✕</button>
       </div>
 
-      @if (followupId && (followupConsultationSummary || followupInstructions)) {
+      @if (followupId && followupInstructions) {
         <div class="ncm-followup-note">
-          <div class="ncm-followup-note-title">Previous visit context</div>
-          @if (followupConsultationSummary?.rawInput) {
-            <div class="ncm-followup-note-row">
-              <span class="ncm-followup-note-label">Doctor's Notes:</span>
-              {{ followupConsultationSummary?.rawInput }}
-            </div>
-          }
-          @if (followupConsultationSummary?.symptoms?.length) {
-            <div class="ncm-followup-note-row">
-              <span class="ncm-followup-note-label">Symptoms:</span>
-              {{ followupConsultationSummary?.symptoms?.join(', ') }}
-            </div>
-          }
-          @if (followupConsultationSummary?.diagnosis) {
-            <div class="ncm-followup-note-row">
-              <span class="ncm-followup-note-label">Diagnosis:</span>
-              {{ followupConsultationSummary?.diagnosis }}
-            </div>
-          }
-          @if (followupInstructions && followupInstructions !== '-') {
-            <div class="ncm-followup-note-row">
-              <span class="ncm-followup-note-label">Follow-up Instructions:</span>
-              {{ followupInstructions }}
-            </div>
-          }
+          <strong>Previous instructions:</strong> {{ followupInstructions }}
         </div>
       }
 

@@ -1,0 +1,91 @@
+<div class="messages-page">
+
+  <div class="page-header">
+    <h2>Contact Messages</h2>
+  </div>
+
+  <div class="search-wrap">
+    <p>Search by name, email or message</p>
+    <div class="search-row">
+      <input type="text" placeholder="Search messages..." [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event); currentPage.set(1); loadMessages()" />
+      <button class="btn-search" (click)="currentPage.set(1); loadMessages()">Search</button>
+      <button class="btn-clear" (click)="searchQuery.set(''); currentPage.set(1); loadMessages()">Clear</button>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+  <div class="loading">Loading...</div>
+  }
+
+  @if (errorMessage()) {
+  <div class="error">{{ errorMessage() }}</div>
+  }
+
+  @if (!isLoading() && messages().length === 0) {
+  <div class="empty">No messages found.</div>
+  }
+
+  @if (!isLoading() && messages().length > 0) {
+  <div class="table-wrapper">
+    <table class="messages-table">
+      <thead>
+        <tr>
+          <th data-label="Name">Name</th>
+          <th data-label="Email">Email</th>
+          <th data-label="Message">Message</th>
+          <th data-label="Received">Received</th>
+          <th data-label="Status">Status</th>
+          <th data-label="Action">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (msg of messages(); track msg._id) {
+        <tr (click)="toggleExpand(msg._id)" class="clickable-row">
+          <td data-label="Name">{{ msg.name }}</td>
+          <td data-label="Email"><a href="mailto:{{ msg.email }}">{{ msg.email }}</a></td>
+          <td data-label="Message" class="message-cell">
+            {{ expandedId() === msg._id ? msg.message : preview(msg.message) }}
+          </td>
+          <td data-label="Received">{{ msg.createdAt | date:'medium' }}</td>
+          <td data-label="Status">
+            <span class="status-badge" [class.status-new]="msg.status === 'new'"
+              [class.status-read]="msg.status === 'read'">
+              {{ msg.status }}
+            </span>
+          </td>
+          <td data-label="Action">
+            @if (msg.status === 'new') {
+            <button class="btn-mark-read" (click)="markAsRead(msg._id, $event)">Mark as read</button>
+            }
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+
+  @if (totalPages() > 1 && !searchQuery()) {
+  <div class="pagination">
+    <button class="page-btn" (click)="prevPage()" [disabled]="currentPage() === 1">
+      ← Prev
+    </button>
+
+    @for (page of [].constructor(totalPages()); track $index) {
+    <button class="page-btn" [class.active]="currentPage() === $index + 1" (click)="goToPage($index + 1)">
+      {{ $index + 1 }}
+    </button>
+    }
+
+    <button class="page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">
+      Next →
+    </button>
+
+    <span class="page-info">
+      Show {{ currentPage() }} of {{ totalPages() }} — {{ totalMessages() }} messages
+    </span>
+  </div>
+  }
+
+</div>

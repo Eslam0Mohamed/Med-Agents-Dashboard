@@ -23,6 +23,9 @@ export class FollowupService {
   getFollowupsByPatient(patientId: string): Observable<FollowupResponse> {
     return this.http.get<FollowupResponse>(`${this.baseUrl}/patient/${patientId}`);
   }
+  getFollowupsByDoctorId(doctorId: string): Observable<FollowupResponse> {
+  return this.http.get<FollowupResponse>(`${this.baseUrl}/by-doctor/${doctorId}`);
+}
 
   updateStatus(id: string, status: 'pending' | 'confirmed' | 'cancelled'): Observable<any> {
     return this.http.put(`${this.baseUrl}/${id}`, { status });

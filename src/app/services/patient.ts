@@ -34,9 +34,11 @@ export interface PatientWithDoctor extends Omit<Patient, 'createdBy'> {
 }
 
 export interface PrescriptionInfo {
+  _id?: string;
   medications: {
     name: string;
     dose?: string;
+    dosage?: string;
     frequency?: string;
     duration?: string;
   }[];

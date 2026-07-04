@@ -46,6 +46,12 @@ const routes: Routes = [
         loadChildren: () =>
           import('../followups/followups-module').then(m => m.FollowupsModule)
       },
+         {
+  path: 'contact-messages',
+  loadComponent: () =>
+    import('../contact/contact')
+      .then(m => m.ContactMessages)
+},
     ]
   }
 ];

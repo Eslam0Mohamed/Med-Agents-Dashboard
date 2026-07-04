@@ -34,53 +34,193 @@
           <div class="doctor-stat-value">{{ totalPatients() }}</div>
           <div class="doctor-stat-label">Patients</div>
         </div>
+        <div class="doctor-stat">
+          <div class="doctor-stat-value">{{ totalConsultations() }}</div>
+          <div class="doctor-stat-label">Consultations</div>
+        </div>
+        <div class="doctor-stat">
+          <div class="doctor-stat-value">{{ totalFollowups() }}</div>
+          <div class="doctor-stat-label">Follow-ups</div>
+        </div>
       </div>
     </div>
   }
 
-  <div class="section-title">Patients</div>
+  <div class="content-grid">
 
-  @if (isLoadingPatients()) {
-    <div class="loading">Loading patients...</div>
-  }
+    <div class="main-col">
 
-  @if (!isLoadingPatients() && patients().length === 0) {
-    <div class="empty">No patients found for this doctor.</div>
-  }
+      <div class="tabs">
+        <button class="tab-btn" [class.active]="activeTab() === 'patients'" (click)="setTab('patients')">
+          Patients <span class="tab-count">{{ totalPatients() }}</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeTab() === 'consultations'" (click)="setTab('consultations')">
+          Consultations <span class="tab-count">{{ totalConsultations() }}</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeTab() === 'followups'" (click)="setTab('followups')">
+          Follow-ups <span class="tab-count">{{ totalFollowups() }}</span>
+        </button>
+      </div>
 
-  @if (!isLoadingPatients() && patients().length > 0) {
-    <div class="table-wrapper">
-      <table class="patients-table">
-        <thead>
-          <tr>
-            <th data-label="Name">Name</th>
-            <th data-label="National ID">National ID</th>
-            <th data-label="Age">Age</th>
-            <th data-label="Gender">Gender</th>
-            <th data-label="Actions">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (patient of patients(); track patient._id) {
-            <tr>
-              <td data-label="Name">{{ patient.name }}</td>
-              <td data-label="National ID">{{ patient.nationalID }}</td>
-              <td data-label="Age">{{ calculateAge(patient.dateOfBirth) }}</td>
-              <td data-label="Gender">
-                <span class="badge" [class.male]="patient.gender === 'male'" [class.female]="patient.gender === 'female'">
-                  {{ patient.gender }}
-                </span>
-              </td>
-              <td data-label="Actions">
-                <div class="actions">
-                  <button class="btn-history" (click)="goToPatientHistory(patient._id!)">History</button>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+      @if (selectedDateKey()) {
+        <div class="date-filter-banner">
+          <span>Showing results for <strong>{{ selectedDateLabel() }}</strong></span>
+          <button class="btn-clear-filter" (click)="clearDateFilter()">Clear</button>
+        </div>
+      }
+
+      @if (activeTab() === 'patients') {
+        @if (isLoadingPatients()) {
+          <div class="loading">Loading patients...</div>
+        }
+        @if (!isLoadingPatients() && patients().length === 0) {
+          <div class="empty">No patients found for this doctor.</div>
+        }
+        @if (!isLoadingPatients() && patients().length > 0) {
+          <div class="table-wrapper">
+            <table class="patients-table">
+              <thead>
+                <tr>
+                  <th data-label="Name">Name</th>
+                  <th data-label="National ID">National ID</th>
+                  <th data-label="Age">Age</th>
+                  <th data-label="Gender">Gender</th>
+                  <th data-label="Actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (patient of patients(); track patient._id) {
+                  <tr>
+                    <td data-label="Name">{{ patient.name }}</td>
+                    <td data-label="National ID">{{ patient.nationalID }}</td>
+                    <td data-label="Age">{{ calculateAge(patient.dateOfBirth) }}</td>
+                    <td data-label="Gender">
+                      <span class="badge" [class.male]="patient.gender === 'male'" [class.female]="patient.gender === 'female'">
+                        {{ patient.gender }}
+                      </span>
+                    </td>
+                    <td data-label="Actions">
+                      <div class="actions">
+                        <button class="btn-history" (click)="goToPatientHistory(patient._id!)">History</button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
+      @if (activeTab() === 'consultations') {
+        @if (isLoadingConsultations()) {
+          <div class="loading">Loading consultations...</div>
+        }
+        @if (!isLoadingConsultations() && filteredConsultations().length === 0) {
+          <div class="empty">No consultations found{{ selectedDateKey() ? ' for this day' : '' }}.</div>
+        }
+        @if (!isLoadingConsultations() && filteredConsultations().length > 0) {
+          <div class="table-wrapper">
+            <table class="patients-table">
+              <thead>
+                <tr>
+                  <th data-label="Patient">Patient</th>
+                  <th data-label="Diagnosis">Diagnosis</th>
+                  <th data-label="Urgency">Urgency</th>
+                  <th data-label="Date">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of filteredConsultations(); track c._id) {
+                  <tr>
+                    <td data-label="Patient">{{ getPatientName(c.patientId) }}</td>
+                    <td data-label="Diagnosis">{{ c.diagnosis || 'No diagnosis' }}</td>
+                    <td data-label="Urgency">
+                      <span class="urgency-badge" [class]="getUrgencyClass(c.urgencyLevel)">
+                        {{ c.urgencyLevel || 'unknown' }}
+                      </span>
+                    </td>
+                    <td data-label="Date">{{ c.createdAt | date: 'MMM d, y' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
+      @if (activeTab() === 'followups') {
+        @if (isLoadingFollowups()) {
+          <div class="loading">Loading follow-ups...</div>
+        }
+        @if (!isLoadingFollowups() && filteredFollowups().length === 0) {
+          <div class="empty">No follow-ups found{{ selectedDateKey() ? ' for this day' : '' }}.</div>
+        }
+        @if (!isLoadingFollowups() && filteredFollowups().length > 0) {
+          <div class="table-wrapper">
+            <table class="patients-table">
+              <thead>
+                <tr>
+                  <th data-label="Patient">Patient</th>
+                  <th data-label="Scheduled Date">Scheduled Date</th>
+                  <th data-label="Status">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (f of filteredFollowups(); track f._id) {
+                  <tr>
+                    <td data-label="Patient">{{ f.patientId?.name || 'Unknown' }}</td>
+                    <td data-label="Scheduled Date">{{ f.scheduledDate | date: 'MMM d, y' }}</td>
+                    <td data-label="Status">
+                      <span class="status-badge" [class]="f.status">{{ f.status }}</span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+
     </div>
-  }
+
+    <div class="calendar-col">
+      <div class="calendar-card">
+        <div class="calendar-header">
+          <button class="cal-nav-btn" (click)="prevMonth()">‹</button>
+          <span class="calendar-month-label">{{ monthLabel() }}</span>
+          <button class="cal-nav-btn" (click)="nextMonth()">›</button>
+        </div>
+
+        <div class="calendar-weekdays">
+          <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+        </div>
+
+        <div class="calendar-grid">
+          @for (day of calendarDays(); track day.dateKey) {
+            <button
+              class="calendar-day"
+              [class.outside]="!day.inCurrentMonth"
+              [class.today]="day.isToday"
+              [class.selected]="selectedDateKey() === day.dateKey"
+              [class.has-activity]="day.hasActivity"
+              (click)="selectDay(day)"
+            >
+              {{ day.date.getDate() }}
+              @if (day.hasActivity) {
+                <span class="activity-dot"></span>
+              }
+            </button>
+          }
+        </div>
+
+        <div class="calendar-legend">
+          <span class="legend-dot-cal"></span>
+          <span>Has activity</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
 
 </div>

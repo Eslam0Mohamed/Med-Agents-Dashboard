@@ -10,6 +10,7 @@ export interface Consultations {
   structuredNote: string;
   urgencyLevel: UrgencyLevel;
   suggestedSpecialist: string;
+  isChronic?: boolean;
   status: 'pending' | 'completed';
   language: 'en' | 'ar';
   followUpDate?: string;
@@ -24,11 +25,22 @@ export interface CreateConsultationDto {
   diagnosis: string;
   rawInput: string;
   language: 'en' | 'ar';
+  isChronic?: boolean;
   followUpDate?: string;
+  followupId?: string;
 }
 
 export interface ConsultationResponse {
   success: boolean;
   data: Consultations[];
   count: number;
+}
+export interface PopulatedPatientRef {
+  _id: string;
+  name: string;
+  age?: number;
+}
+
+export interface ConsultationWithPatient extends Omit<Consultations, 'patientId'> {
+  patientId: PopulatedPatientRef | string;
 }

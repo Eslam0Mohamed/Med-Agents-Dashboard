@@ -181,8 +181,9 @@ export class PatientVisit implements OnInit {
         this.existingConsultation.set(consultation);
         this.activeConsultationId.set(consultationId);
         this.showConsultationSection.set(true);
-        this.showPrescriptionSection.set(true);
-
+        // ديف الروشتة مش بيتعرض فورًا هنا — بيفضل مستني لحد ما الدكتور
+        // يدوس Save/Update على ديف الكونسلتيشن (نفس سلوك الإنشاء بالظبط)،
+        // فبنحمّل بيانات الروشتة الموجودة في الخلفية بس من غير ما نعرض الديف
         this.prescriptionService.getPrescriptionByConsultation(consultationId).subscribe({
           next: (presRes: any) => this.existingPrescription.set(presRes?.data || null),
           error: () => this.existingPrescription.set(null),

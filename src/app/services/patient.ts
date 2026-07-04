@@ -54,6 +54,7 @@ export interface ConsultationHistory {
   urgencyLevel: string;
   suggestedSpecialist: string | null;
   structuredNote: string | null;
+  doctorNotes: string | null;
   isFollowup?: boolean;
   prescription: PrescriptionInfo | null;
 }

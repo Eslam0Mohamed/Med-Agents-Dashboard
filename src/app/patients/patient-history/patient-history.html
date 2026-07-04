@@ -93,6 +93,12 @@
               <span class="label">Diagnosis</span>
               <p>{{ item.diagnosis }}</p>
             </div>
+            @if (item.doctorNotes) {
+              <div class="field">
+                <span class="label">Doctor's Notes</span>
+                <p class="note">{{ item.doctorNotes }}</p>
+              </div>
+            }
             @if (item.suggestedSpecialist) {
               <div class="field">
                 <span class="label">Suggested Specialist</span>

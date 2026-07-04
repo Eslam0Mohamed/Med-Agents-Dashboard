@@ -62,7 +62,14 @@ export class PrescriptionService {
   // (نفس الإندبوينت اللي بيستخدمه الفرونت إند الرياكت)
   checkPrescriptionSafety(payload: {
     patientId: string;
-    medications: { name: string; activeIngredient?: string | null }[];
+    medications: {
+      name: string;
+      activeIngredient?: string | null;
+      dosageAmount?: string | number | null;
+      dosageUnit?: string | null;
+      frequencyCount?: string | number | null;
+      frequencyPeriod?: string | null;
+    }[];
     excludePrescriptionId?: string;
   }): Observable<{ success: boolean; data: { patient: any; medications: Medication[] } }> {
     return this.http.post<{ success: boolean; data: { patient: any; medications: Medication[] } }>(

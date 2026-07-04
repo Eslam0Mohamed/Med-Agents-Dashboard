@@ -68,8 +68,19 @@ export class NewConsultationModalComponent implements OnChanges {
   isSaved = signal(false); // لازم يدوس Get AI Recommendation الأول
   isSaving = signal(false);
 
+  // لو الدكتور حفظ (Create) وهو لسه في نفس الصفحة، وبعدين عدّل حاجة وحفظ
+  // تاني، مش عايزينه يعمل كونسلتيشن تانية مكررة — بنسجل الـ id بتاعة
+  // الكونسلتيشن اللي اتعملت وبنحوّل أي حفظ بعد كده لـ "تعديل" تلقائيًا،
+  // من غير ما نلمس existingConsultation (عشان منعملش resetForm ونمسح اللي
+  // الدكتور كاتبه دلوقتي)
+  private createdConsultationId = signal<string | null>(null);
+
   get isEditMode(): boolean {
-    return !!this.existingConsultation;
+    return !!this.existingConsultation || !!this.createdConsultationId();
+  }
+
+  private get currentConsultationId(): string | null {
+    return this.existingConsultation?._id || this.createdConsultationId();
   }
 
   constructor(
@@ -109,6 +120,7 @@ export class NewConsultationModalComponent implements OnChanges {
       this.followUpDate.set('');
       this.aiResult.set(null);
       this.isSaved.set(false);
+      this.createdConsultationId.set(null);
     }
   }
 
@@ -208,8 +220,8 @@ export class NewConsultationModalComponent implements OnChanges {
     const ai = this.aiResult();
 
     if (this.isEditMode) {
-      // ─── تعديل كونسلتيشن موجودة ─────────────────────────────────────────
-      const consultationId = this.existingConsultation._id;
+      // ─── تعديل كونسلتيشن موجودة (أو كونسلتيشن اتعملت لسه في نفس الجلسة) ──
+      const consultationId = this.currentConsultationId!;
       const payload: any = {
         rawInput: this.rawInput().trim(),
         diagnosis: this.diagnosis().trim(),
@@ -220,9 +232,9 @@ export class NewConsultationModalComponent implements OnChanges {
         suggestedSpecialist: ai?.suggestedSpecialist,
         urgencyLevel: ai?.urgencyLevel,
       };
-      if (this.followUpDate()) {
-        payload.followUpDate = this.followUpDate();
-      }
+      // بنبعت followUpDate دايمًا هنا حتى لو فاضية — عشان الباك يقدر يفرّق
+      // بين "الدكتور مسح التاريخ عن قصد" و"الحقل ده أصلاً مش جزء من التعديل"
+      payload.followUpDate = this.followUpDate() || '';
 
       this.consultationService.update(consultationId, payload).subscribe({
         next: () => {
@@ -232,10 +244,7 @@ export class NewConsultationModalComponent implements OnChanges {
           // كمان عشان تفضل متزامنة مع أحدث ملاحظة
           if (this.followupId) {
             this.followupService
-              .updateInstructions(
-                this.followupId,
-                ai?.structuredNote || this.rawInput().trim(),
-              )
+              .updateInstructions(this.followupId, ai?.structuredNote || this.rawInput().trim())
               .subscribe();
           }
 
@@ -286,6 +295,9 @@ export class NewConsultationModalComponent implements OnChanges {
       next: (res: any) => {
         this.isSaving.set(false);
         const newConsultationId = res?.data?._id;
+        // أي حفظ تاني بعد كده في نفس الجلسة يبقى تعديل على الكونسلتيشن دي،
+        // مش إنشاء واحدة تانية مكررة
+        this.createdConsultationId.set(newConsultationId);
 
         Swal.fire({
           title: this.followupId ? 'Follow-up Completed' : 'Saved Successfully',

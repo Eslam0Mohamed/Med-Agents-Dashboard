@@ -162,10 +162,19 @@ export class PrescriptionModalComponent implements OnChanges {
     this.scheduleSafetyCheck();
   }
 
+  // بدون تشغيل الـ safety check — مستخدمة وقت الكتابة/البحث في اسم الدواء،
+  // لأن الاسم لسه مش نهائي (الدكتور لسه بيدور)، مفيش داعي نكلم الـ AI على
+  // كل حرف بيتكتب
+  private updateMedicationQuiet(index: number, patch: Partial<MedicationFormState>): void {
+    this.medications.update((list: MedicationFormState[]) =>
+      list.map((m, i) => (i === index ? { ...m, ...patch } : m)),
+    );
+  }
+
   onNameInput(index: number, value: string): void {
     const med = this.medications()[index];
     // لو الدكتور بدأ يعدل الاسم يدويًا، المادة الفعالة المحفوظة قبل كدة مش مضمون تكون صحيحة لسة
-    this.updateMedication(index, { name: value, activeIngredient: '' });
+    this.updateMedicationQuiet(index, { name: value, activeIngredient: '' });
     this.showSuggestionsByKey[med._key] = true;
     this.drugQuery$.next({ key: med._key, query: value });
   }
@@ -188,6 +197,8 @@ export class PrescriptionModalComponent implements OnChanges {
         ? drug.genericName
         : '';
     const med = this.medications()[index];
+    // دلوقتي الدكتور فعلاً اختار دواء محدد من الليستة — ده اللحظة الوحيدة
+    // اللي المفروض تشغّل الـ AI safety check (مش أي حرف بيتكتب وهو بيدور)
     this.updateMedication(index, { name: drug.displayName, activeIngredient });
     this.showSuggestionsByKey[med._key] = false;
     this.suggestionsByKey[med._key] = [];
@@ -213,6 +224,10 @@ export class PrescriptionModalComponent implements OnChanges {
         medications: validMeds.map((m: MedicationFormState) => ({
           name: m.name,
           activeIngredient: m.activeIngredient || null,
+          dosageAmount: m.dosageAmount || null,
+          dosageUnit: m.dosageUnit || null,
+          frequencyCount: m.frequencyCount || null,
+          frequencyPeriod: m.frequencyPeriod || null,
         })),
         excludePrescriptionId: this.existingPrescription?._id,
       })

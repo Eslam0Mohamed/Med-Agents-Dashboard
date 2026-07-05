@@ -46,6 +46,31 @@ export class DoctorDetail implements OnInit {
   totalConsultations = computed(() => this.consultations().length);
   totalFollowups = computed(() => this.followups().length);
 
+  filteredPatients = computed(() => {
+    const list = this.patients();
+    const key = this.selectedDateKey();
+    if (!key) return list;
+
+    // نجمع الـ IDs بتوع المرضى اللي ليهم consultation أو follow-up في اليوم ده
+    const activePatientIds = new Set<string>();
+
+    this.consultations().forEach((c) => {
+      if (this.toDateKey(c.createdAt) === key) {
+        const pid = typeof c.patientId === 'string' ? c.patientId : c.patientId?._id;
+        if (pid) activePatientIds.add(pid);
+      }
+    });
+
+    this.followups().forEach((f) => {
+      if (this.toDateKey(f.scheduledDate) === key) {
+        const pid = f.patientId?._id;
+        if (pid) activePatientIds.add(pid);
+      }
+    });
+
+    return list.filter((p) => p._id && activePatientIds.has(p._id));
+  });
+
   filteredConsultations = computed(() => {
     const list = this.consultations();
     const key = this.selectedDateKey();

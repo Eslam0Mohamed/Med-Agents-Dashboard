@@ -73,10 +73,10 @@
         @if (isLoadingPatients()) {
           <div class="loading">Loading patients...</div>
         }
-        @if (!isLoadingPatients() && patients().length === 0) {
+        @if (!isLoadingPatients() && filteredPatients().length === 0) {
           <div class="empty">No patients found for this doctor.</div>
         }
-        @if (!isLoadingPatients() && patients().length > 0) {
+        @if (!isLoadingPatients() && filteredPatients().length > 0) {
           <div class="table-wrapper">
             <table class="patients-table">
               <thead>
@@ -89,7 +89,7 @@
                 </tr>
               </thead>
               <tbody>
-                @for (patient of patients(); track patient._id) {
+                @for (patient of filteredPatients(); track patient._id) {
                   <tr>
                     <td data-label="Name">{{ patient.name }}</td>
                     <td data-label="National ID">{{ patient.nationalID }}</td>

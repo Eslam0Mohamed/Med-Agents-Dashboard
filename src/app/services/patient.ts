@@ -19,6 +19,14 @@ export interface Patient {
   bloodType: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
   allergies?: string[];
   chronicConditions?: string[];
+  chronicMedications?: string[];
+  discontinuedMedications?: {
+    prescriptionId: string;
+    medicationId: string;
+    medicationName?: string;
+    discontinuedAt: string;
+    reason?: string | null;
+  }[];
   createdBy?: string;
   createdAt?: string;
 }
@@ -37,11 +45,16 @@ export interface PatientWithDoctor extends Omit<Patient, 'createdBy'> {
 export interface PrescriptionInfo {
   _id?: string;
   medications: {
+    _id?: string;
     name: string;
     dose?: string;
     dosage?: string;
     frequency?: string;
     duration?: string;
+    isChronic?: boolean;
+    isDiscontinued?: boolean;
+    discontinuedAt?: string | null;
+    discontinuedReason?: string | null;
   }[];
   interactions: string[];
   warnings: string[];
@@ -96,9 +109,7 @@ export class PatientService {
     data: Patient[];
     pagination: { total: number; page: number; limit: number; totalPages: number } | null;
   }> {
-    return this.http.get<any>(
-      `${this.apiUrl}/by-doctor/${doctorId}?page=${page}&limit=${limit}`,
-    );
+    return this.http.get<any>(`${this.apiUrl}/by-doctor/${doctorId}?page=${page}&limit=${limit}`);
   }
   getHistory(id: string): Observable<{ success: boolean; data: IPatientHistory }> {
     return this.http.get<{ success: boolean; data: IPatientHistory }>(
@@ -115,5 +126,25 @@ export class PatientService {
 
   delete(id: string): Observable<{ success: boolean; message: string }> {
     return this.http.delete<{ success: boolean; message: string }>(`${this.apiUrl}/${id}`);
+  }
+
+  discontinueMedication(
+    patientId: string,
+    payload: { prescriptionId: string; medicationId: string; reason?: string },
+  ): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(
+      `${this.apiUrl}/${patientId}/discontinue-medication`,
+      payload,
+    );
+  }
+
+  reactivateMedication(
+    patientId: string,
+    medicationId: string,
+  ): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(
+      `${this.apiUrl}/${patientId}/reactivate-medication`,
+      { medicationId },
+    );
   }
 }

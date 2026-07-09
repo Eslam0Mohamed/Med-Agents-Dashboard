@@ -3,7 +3,9 @@
     <button class="btn-back" (click)="goBack()">← Back</button>
     <h2>Patient History</h2>
     @if (data()) {
-      <button class="btn-new-consultation" (click)="openNewConsultation()">+ New Consultation</button>
+      <button class="btn-new-consultation" (click)="openNewConsultation()">
+        + New Consultation
+      </button>
     }
   </div>
 
@@ -49,6 +51,20 @@
             }
             @if (
               !data()!.patient.chronicConditions || data()!.patient.chronicConditions!.length === 0
+            ) {
+              <span class="muted">None</span>
+            }
+          </div>
+        </div>
+        <div class="meta-block">
+          <span class="meta-label">Chronic Medications</span>
+          <div class="tags">
+            @for (m of data()!.patient.chronicMedications; track m) {
+              <span class="tag tag-purple">{{ m }}</span>
+            }
+            @if (
+              !data()!.patient.chronicMedications ||
+              data()!.patient.chronicMedications!.length === 0
             ) {
               <span class="muted">None</span>
             }
@@ -118,16 +134,47 @@
                 </div>
                 <ul class="med-list">
                   @for (med of item.prescription.medications; track med.name) {
-                    <li>
-                      <strong>{{ med.name }}</strong>
-                      @if (med.dose) {
-                        <span> — {{ med.dose }}</span>
-                      }
-                      @if (med.frequency) {
-                        <span> ({{ med.frequency }})</span>
-                      }
-                      @if (med.duration) {
-                        <span class="duration-tag">{{ med.duration }}</span>
+                    <li [class.med-discontinued]="med.isDiscontinued">
+                      <div class="med-info">
+                        <strong>{{ med.name }}</strong>
+                        @if (med.dose) {
+                          <span> — {{ med.dose }}</span>
+                        }
+                        @if (med.frequency) {
+                          <span> ({{ med.frequency }})</span>
+                        }
+                        @if (med.duration) {
+                          <span class="duration-tag">{{ med.duration }}</span>
+                        }
+                        @if (med.isChronic) {
+                          <span class="tag tag-purple tag-sm">CHRONIC</span>
+                        }
+                      </div>
+                      @if (med.isChronic) {
+                        @if (med.isDiscontinued) {
+                          <div class="med-discontinue-status">
+                            <span class="muted">
+                              Discontinued on {{ med.discontinuedAt | date: 'mediumDate' }}
+                            </span>
+                            <button
+                              type="button"
+                              class="btn-undo"
+                              (click)="reactivateMedication(med._id, med.name)"
+                            >
+                              Undo
+                            </button>
+                          </div>
+                        } @else {
+                          <button
+                            type="button"
+                            class="btn-discontinue"
+                            (click)="
+                              discontinueMedication(item.prescription._id, med._id, med.name)
+                            "
+                          >
+                            Discontinue
+                          </button>
+                        }
                       }
                     </li>
                   }

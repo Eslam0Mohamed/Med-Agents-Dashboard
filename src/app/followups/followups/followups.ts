@@ -82,8 +82,9 @@ export class Followups implements OnInit {
     let filtered = term
       ? all.filter((f) => {
           if (!f.patientId) return false;
-          const patientId = (f.patientId as any)?._id;
-          return patientId?.toLowerCase().includes(term);
+          const name = (f.patientId as any)?.name?.toLowerCase() || '';
+          const nationalId = (f.patientId as any)?.nationalID?.toLowerCase() || '';
+          return name.includes(term) || nationalId.includes(term);
         })
       : all;
 
@@ -92,7 +93,7 @@ export class Followups implements OnInit {
     }
 
     if (term && filtered.length === 0) {
-      this.errorMessage.set('No follow-ups found for this patient ID');
+      this.errorMessage.set('No follow-ups found for this patient');
     } else {
       this.errorMessage.set('');
     }

@@ -29,13 +29,13 @@
 
   <!-- Search -->
   <div class="search-card">
-    <label>Search by Patient ID</label>
+    <label>Search Follow-up</label>
     <div class="search-row">
       <input
         type="text"
         [ngModel]="searchTerm()"
         (ngModelChange)="searchTerm.set($event)"
-        placeholder="Enter patient ID"
+        placeholder="Search follow up by patient name or national ID"
       />
       <button (click)="applySearch()" [disabled]="isLoading()">Search</button>
       <select

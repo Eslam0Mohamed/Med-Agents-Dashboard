@@ -129,6 +129,16 @@
   background: #fef3e2;
   color: #b45309;
 }
+.tag-purple {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+.tag-sm {
+  padding: 1px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
 .muted {
   color: #aaa;
   font-size: 12px;
@@ -602,12 +612,67 @@
   font-size: 13px;
   color: #333;
   background: #f5f5f5;
-  padding: 6px 10px;
+  padding: 8px 10px;
   border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.med-list li.med-discontinued {
+  background: #fafafa;
+  opacity: 0.65;
+}
+.med-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 .duration-tag {
   color: #888;
   font-size: 12px;
+}
+.med-discontinue-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.btn-discontinue {
+  border: 1px solid #fecaca;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.btn-discontinue:hover {
+  background: #dc2626;
+  color: #fff;
+}
+.btn-undo {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.btn-undo:hover {
+  background: #2563eb;
+  color: #fff;
 }
 
 .warning-box {

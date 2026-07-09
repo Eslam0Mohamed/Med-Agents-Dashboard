@@ -1,4 +1,5 @@
-.form-page { padding: 24px;
+.form-page {
+  padding: 24px;
   /* display: flex; */
   /* flex-direction: column; */
   /* align-items: center; */
@@ -8,14 +9,18 @@
 
 .page-header {
   display: flex;
-    margin-bottom: 24px;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-margin-top: 15px;
+  margin-bottom: 24px;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 15px;
 }
 
-.page-header h2 { font-size: 22px; font-weight: 600; color: #2152b3; }
+.page-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #2152b3;
+}
 
 .btn-back {
   background: transparent;
@@ -27,13 +32,15 @@ margin-top: 15px;
   color: #555;
 }
 
-.btn-back:hover { background: #f5f5f5; }
+.btn-back:hover {
+  background: #f5f5f5;
+}
 
 .form-card {
   background: #fff;
   border-radius: 12px;
   padding: 28px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   max-width: 700px;
 }
 
@@ -44,7 +51,56 @@ margin-top: 15px;
   gap: 6px;
 }
 
-.form-group label { font-size: 13px; font-weight: 500; color: #555; }
+.form-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+}
+.optional-hint {
+  font-weight: 400;
+  color: #999;
+  font-size: 12px;
+}
+
+.drug-suggestions {
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-top: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  list-style: none;
+  padding: 0;
+}
+.drug-suggestions li {
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 1px solid #f5f5f5;
+}
+.drug-suggestions li:last-child {
+  border-bottom: none;
+}
+.drug-suggestions li:hover {
+  background: #f3e8ff;
+}
+.drug-suggestion-loading {
+  color: #999;
+  cursor: default;
+}
+.drug-suggestion-loading:hover {
+  background: transparent;
+}
+.drug-suggestion-generic {
+  color: #999;
+  font-size: 12px;
+}
 
 .form-group input,
 .form-group select {
@@ -57,7 +113,9 @@ margin-top: 15px;
 }
 
 .form-group input:focus,
-.form-group select:focus { border-color: #2152b3; }
+.form-group select:focus {
+  border-color: #2152b3;
+}
 
 .form-row {
   display: grid;
@@ -70,7 +128,9 @@ margin-top: 15px;
   gap: 8px;
 }
 
-.tag-input input { flex: 1; }
+.tag-input input {
+  flex: 1;
+}
 
 .tag-input button {
   padding: 10px 16px;
@@ -82,9 +142,16 @@ margin-top: 15px;
   font-size: 13px;
 }
 
-.tag-input button:hover { background: #2152b3; }
+.tag-input button:hover {
+  background: #2152b3;
+}
 
-.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
 
 .tag {
   background: #f0f0f0;
@@ -104,7 +171,9 @@ margin-top: 15px;
   font-weight: bold;
 }
 
-.remove:hover { color: #e53e3e; }
+.remove:hover {
+  color: #e53e3e;
+}
 
 .form-actions {
   display: flex;
@@ -134,13 +203,25 @@ margin-top: 15px;
   font-weight: 500;
 }
 
-.btn-save:hover { background: #2152b3; }
-.btn-save:disabled { background: #aaa; cursor: not-allowed; }
+.btn-save:hover {
+  background: #2152b3;
+}
+.btn-save:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
 
-.loading { color: #888; padding: 20px; }
-.error { color: #e53e3e; margin-bottom: 16px; }
-
+.loading {
+  color: #888;
+  padding: 20px;
+}
+.error {
+  color: #e53e3e;
+  margin-bottom: 16px;
+}
 
 @media (max-width: 600px) {
-  .form-row { grid-template-columns: 1fr; }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }

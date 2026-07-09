@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PatientService, IPatientHistory } from '../../services/patient';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-patient-history',
@@ -65,5 +66,54 @@ export class PatientHistory implements OnInit {
   // ─── "New Consultation" button ─── بيوديك لصفحة كاملة، مش بوب أب ───────
   openNewConsultation(): void {
     this.router.navigate(['/dashboard/patients/visit', this.patientId()]);
+  }
+
+  // ─── إيقاف دواء كروني (من غير ما نلمس الروشتة القديمة خالص) ───────────
+  discontinueMedication(
+    prescriptionId: string | undefined,
+    medicationId: string | undefined,
+    medName: string,
+  ): void {
+    if (!prescriptionId || !medicationId) return;
+
+    Swal.fire({
+      title: 'Discontinue this medication?',
+      text: `"${medName}" will no longer be counted as an active medication in future interaction/dosage checks. The original prescription record will not be changed.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, discontinue',
+      cancelButtonText: 'Cancel',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      this.patientService
+        .discontinueMedication(this.patientId(), { prescriptionId, medicationId })
+        .subscribe({
+          next: () => this.loadHistory(),
+          error: (err) =>
+            Swal.fire('Error', err?.error?.message || 'Something went wrong', 'error'),
+        });
+    });
+  }
+
+  // ─── التراجع عن الإيقاف ───────────────────────────────────────────────
+  reactivateMedication(medicationId: string | undefined, medName: string): void {
+    if (!medicationId) return;
+
+    Swal.fire({
+      title: 'Reactivate this medication?',
+      text: `"${medName}" will be counted as an active medication again in future interaction/dosage checks.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, reactivate',
+      cancelButtonText: 'Cancel',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      this.patientService.reactivateMedication(this.patientId(), medicationId).subscribe({
+        next: () => this.loadHistory(),
+        error: (err) => Swal.fire('Error', err?.error?.message || 'Something went wrong', 'error'),
+      });
+    });
   }
 }

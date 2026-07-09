@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PatientService, Patient } from '../../services/patient';
+import { PrescriptionService, DrugSuggestion } from '../../services/prescription';
+import { Subject, debounceTime, switchMap, of } from 'rxjs';
 
 @Component({
   selector: 'app-patients-form',
@@ -23,17 +25,44 @@ export class PatientsForm implements OnInit {
     bloodType: 'A+',
     allergies: [],
     chronicConditions: [],
+    chronicMedications: [],
   });
 
   allergyInput = signal('');
   conditionInput = signal('');
+  medicationInput = signal('');
   bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+  medicationSuggestions = signal<DrugSuggestion[]>([]);
+  showMedicationSuggestions = signal(false);
+  searchingMedications = signal(false);
+  private medicationQuery$ = new Subject<string>();
 
   constructor(
     private patientService: PatientService,
+    private prescriptionService: PrescriptionService,
     private router: Router,
     private route: ActivatedRoute,
-  ) {}
+  ) {
+    this.medicationQuery$
+      .pipe(
+        debounceTime(350),
+        switchMap((query) => {
+          if (!query || query.trim().length < 2) {
+            this.searchingMedications.set(false);
+            return of([] as DrugSuggestion[]);
+          }
+          this.searchingMedications.set(true);
+          return this.prescriptionService
+            .searchDrugs(query.trim())
+            .pipe(switchMap((res) => of(res.data || [])));
+        }),
+      )
+      .subscribe((data) => {
+        this.searchingMedications.set(false);
+        this.medicationSuggestions.set(data);
+      });
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.params['id'];
@@ -92,6 +121,41 @@ export class PatientsForm implements OnInit {
     this.patient.update((p) => ({
       ...p,
       chronicConditions: p.chronicConditions?.filter((_, i) => i !== index),
+    }));
+  }
+
+  onMedicationInputChange(value: string): void {
+    this.medicationInput.set(value);
+    this.showMedicationSuggestions.set(true);
+    this.medicationQuery$.next(value);
+  }
+
+  hideMedicationSuggestionsSoon(): void {
+    setTimeout(() => this.showMedicationSuggestions.set(false), 200);
+  }
+
+  addMedication(name?: string): void {
+    const val = (name ?? this.medicationInput()).trim();
+    if (val) {
+      this.patient.update((p) => {
+        const existing = p.chronicMedications || [];
+        if (existing.some((m) => m.toLowerCase() === val.toLowerCase())) return p;
+        return { ...p, chronicMedications: [...existing, val] };
+      });
+    }
+    this.medicationInput.set('');
+    this.medicationSuggestions.set([]);
+    this.showMedicationSuggestions.set(false);
+  }
+
+  selectMedicationSuggestion(drug: DrugSuggestion): void {
+    this.addMedication(drug.displayName);
+  }
+
+  removeMedication(index: number): void {
+    this.patient.update((p) => ({
+      ...p,
+      chronicMedications: p.chronicMedications?.filter((_, i) => i !== index),
     }));
   }
 

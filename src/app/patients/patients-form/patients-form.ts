@@ -32,6 +32,63 @@ export class PatientsForm implements OnInit {
   conditionInput = signal('');
   medicationInput = signal('');
   bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+// أخطاء التحقق الخاصة بكل حقل - بترجع فاضية لو الفورم سليم
+  fieldErrors = signal<{ name?: string; nationalID?: string }>({});
+
+  // بيتحقق من كل قواعد التحقق ويرجع true لو الفورم سليم، ويعبي fieldErrors لو لأ
+validate(): boolean {
+    const errors: { name?: string; nationalID?: string } = {};
+    const { name, nationalID, dateOfBirth } = this.patient();
+
+    // الاسم لازم يكون حروف عربية بس
+    if (!name || !name.trim()) {
+      errors.name = 'Full name is required';
+    } else if (!/^[\u0621-\u064A\s]+$/.test(name)) {
+      errors.name = 'Name must be written in Arabic letters only';
+    }
+
+    // الرقم القومي اختياري - بس لو اتكتب، لازم يكون صحيح
+    if (nationalID && nationalID.trim()) {
+      if (!/^\d{14}$/.test(nationalID)) {
+        errors.nationalID = 'National ID must be exactly 14 digits';
+      } else {
+        const century = nationalID[0];
+        const month = parseInt(nationalID.slice(3, 5), 10);
+        const day = parseInt(nationalID.slice(5, 7), 10);
+        const governorateCode = parseInt(nationalID.slice(7, 9), 10);
+
+        if (century !== '2' && century !== '3') {
+          errors.nationalID = 'Invalid National ID: first digit must be 2 or 3';
+        } else if (month < 1 || month > 12) {
+          errors.nationalID = 'Invalid National ID: birth month is invalid';
+        } else if (day < 1 || day > 31) {
+          errors.nationalID = 'Invalid National ID: birth day is invalid';
+        } else if (!((governorateCode >= 1 && governorateCode <= 35) || governorateCode === 88)) {
+          errors.nationalID = 'Invalid National ID: governorate code is invalid';
+        } else if (dateOfBirth) {
+          // نتأكد إن تاريخ الميلاد المكتوب يطابق التاريخ المشفّر جوه الرقم القومي
+          const centuryBase = century === '2' ? 1900 : 2000;
+          const yearFromId = centuryBase + parseInt(nationalID.slice(1, 3), 10);
+
+          const [yearEntered, monthEntered, dayEntered] = dateOfBirth
+            .split('-')
+            .map((part) => parseInt(part, 10));
+
+          if (
+            yearEntered &&
+            monthEntered &&
+            dayEntered &&
+            (yearFromId !== yearEntered || month !== monthEntered || day !== dayEntered)
+          ) {
+            errors.nationalID = `The birth date in the National ID (${month}/${day}/${yearFromId}) does not match the entered Date of Birth`;
+          }
+        }
+      }
+    }
+
+    this.fieldErrors.set(errors);
+    return Object.keys(errors).length === 0;
+  }
 
   medicationSuggestions = signal<DrugSuggestion[]>([]);
   showMedicationSuggestions = signal(false);
@@ -164,8 +221,14 @@ export class PatientsForm implements OnInit {
   }
 
   onSubmit(): void {
-    this.isLoading.set(true);
     this.errorMessage.set('');
+
+    if (!this.validate()) {
+      this.errorMessage.set('Please fix the highlighted fields before saving');
+      return;
+    }
+
+    this.isLoading.set(true);
 
     if (this.isEditMode()) {
       this.patientService.update(this.patientId(), this.patient()).subscribe({

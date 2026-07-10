@@ -13,24 +13,28 @@
   }
 
   <div class="form-card">
-    <div class="form-group">
-      <label>Full Name *</label>
-      <input
-        type="text"
+<div class="form-group">
+      <label>Full Name in Arabic *</label>
+      <input type="text"
         [ngModel]="patient().name"
         (ngModelChange)="updateField('name', $event)"
-        placeholder="Patient full name"
-      />
+        [class.input-error]="fieldErrors().name"
+        placeholder="Patient full name in Arabic" />
+      @if (fieldErrors().name) {
+        <p class="field-error">{{ fieldErrors().name }}</p>
+      }
     </div>
-    <div class="form-group">
-      <label>National ID *</label>
-      <input
-        type="text"
-        [ngModel]="patient().nationalID"
-        (ngModelChange)="updateField('nationalID', $event)"
-        placeholder="Enter national ID"
-      />
-    </div>
+<div class="form-group">
+  <label>National ID *</label>
+  <input type="text"
+    [ngModel]="patient().nationalID"
+    (ngModelChange)="updateField('nationalID', $event)"
+    [class.input-error]="fieldErrors().nationalID"
+    placeholder="Enter national ID" />
+  @if (fieldErrors().nationalID) {
+    <p class="field-error">{{ fieldErrors().nationalID }}</p>
+  }
+</div>
     <div class="form-row">
       <div class="form-group">
         <label>Date of Birth *</label>
